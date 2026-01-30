@@ -9,6 +9,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    aigcm (0.3.2)
+      ruby_llm
     base64 (0.3.0)
     date (3.5.1)
     debug_me (1.1.3)
@@ -74,6 +76,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aigcm
   debug_me
   irb
   minitest (~> 5.16)
@@ -81,6 +84,7 @@ DEPENDENCIES
   self_agency!
 
 CHECKSUMS
+  aigcm (0.3.2) sha256=eda5055a4bc1dd021f860b08134bf122f9df2e283da5be6719d1dde98a23428a
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
   date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
   debug_me (1.1.3) sha256=ae8cf61993350d9b3cbe337a7f9a0f595be5b4976c10891a4e1eacc63d09f717
