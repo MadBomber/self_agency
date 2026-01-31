@@ -27,8 +27,10 @@ bus = MessageBus.new
 
 collector = Robot.new(
   name: "Collector",
-  goal: "Build a catalog of 8 fictional city landmarks including names, types, " \
-        "estimated visit durations in minutes, and visitor ratings on a 1-to-5 scale",
+  goal: "Return an Array of 8 Hashes representing fictional city landmarks. " \
+        "Each Hash has Symbol keys :name (String), :type (String, e.g. 'museum'), " \
+        ":duration (Integer, 30..180 minutes), :rating (Float, 1.0..5.0). " \
+        "Do NOT wrap the Array in an outer Hash.",
   bus: bus
 )
 
@@ -36,8 +38,12 @@ puts ""
 
 analyst = Robot.new(
   name: "Analyst",
-  goal: "Analyze a collection of landmark data to compute visit statistics, " \
-        "rank landmarks by rating, and group them by type",
+  goal: "Analyze landmark data. The input is an Array of Hashes, each with keys " \
+        ":name (String), :type (String), :duration (Integer), :rating (Float). " \
+        "Return a Hash with three keys: " \
+        ":statistics (a Hash with :avg_rating, :avg_duration, :total_duration, :count), " \
+        ":ranked (the landmarks Array sorted by :rating descending), " \
+        ":by_type (a Hash grouping landmarks by :type)",
   bus: bus,
   receives_input: true
 )
@@ -46,8 +52,12 @@ puts ""
 
 planner = Robot.new(
   name: "Planner",
-  goal: "Create a formatted one-day tour itinerary from analyzed landmark data, " \
-        "selecting the top-rated attractions that fit within 6 hours of total visit time",
+  goal: "Create a formatted one-day tour itinerary. The input is a Hash with keys " \
+        ":statistics, :ranked, and :by_type. " \
+        "Use :ranked (an Array of Hashes with :name, :type, :duration, :rating) " \
+        "to select top-rated landmarks that fit within 360 total minutes of visit time. " \
+        "Return a String with a formatted itinerary listing each stop with its name, " \
+        "type, duration, and rating",
   bus: bus,
   receives_input: true
 )
@@ -142,4 +152,15 @@ unless all_repairs.empty?
   puts "Total repair attempts: #{all_repairs.size}, " \
        "successful: #{all_repairs.count { |e| e[:success] }}, " \
        "failed: #{all_repairs.count { |e| !e[:success] }}"
+end
+
+# ---------------------------------------------------------------------------
+# Save generated robots as subclasses
+# ---------------------------------------------------------------------------
+
+puts ""
+puts "=== Saving Generated Robots ==="
+[collector, analyst, planner].each do |robot|
+  path = robot._save!(as: robot.name)
+  puts "#{robot.name}: saved to #{path}"
 end

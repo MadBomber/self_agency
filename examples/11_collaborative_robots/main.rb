@@ -177,3 +177,14 @@ total_lines   = 0
   puts "#{robot.name}: #{methods} method(s), #{lines} lines of generated code"
 end
 puts "Total: #{total_methods} methods, #{total_lines} lines of generated code"
+
+# ---------------------------------------------------------------------------
+# Save generated robots as subclasses
+# ---------------------------------------------------------------------------
+
+puts ""
+puts "=== Saving Generated Robots ==="
+[atlas, nova, echo].each do |robot|
+  path = robot._save!(as: robot.name)
+  puts "#{robot.name}: saved to #{path}"
+end

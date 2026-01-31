@@ -7,6 +7,7 @@ require_relative "self_agency/configuration"
 require_relative "self_agency/sandbox"
 require_relative "self_agency/validator"
 require_relative "self_agency/generator"
+require_relative "self_agency/saver"
 
 # SelfAgency — a standalone mixin that gives any class the ability to
 # generate and install methods at runtime via an LLM.
@@ -118,6 +119,37 @@ module SelfAgency
     end
   rescue NameError, MethodSource::SourceNotFoundError
     nil
+  end
+
+  # Save the object's generated methods as a subclass in a Ruby source file.
+  #
+  # @param as [String, Symbol] the subclass name (snake_case is converted to CamelCase)
+  # @param path [String, nil] output file path (defaults to snake_cased name + .rb)
+  # @return [String] the path written to
+  # @raise [ArgumentError] if as: is not a String or Symbol
+  # @raise [Error] if there are no generated methods to save
+  def _save!(as:, path: nil)
+    raise ArgumentError, "as: must be a String or Symbol" unless as.is_a?(String) || as.is_a?(Symbol)
+    raise Error, "no generated methods to save" if self_agency_sources.empty?
+
+    class_name  = self_agency_to_class_name(as)
+    file_path   = path || "#{self_agency_to_snake_case(class_name)}.rb"
+    parent_name = self.class.name
+    raise Error, "cannot save anonymous class" unless parent_name
+
+    parent_source = Object.const_source_location(parent_name)&.first
+
+    require_path = if parent_source
+      self_agency_relative_require(file_path, parent_source)
+    end
+
+    source = self_agency_build_subclass_source(
+      class_name, parent_name, require_path,
+      self_agency_sources, self_agency_descriptions
+    )
+
+    File.write(file_path, source)
+    file_path
   end
 
   # Override in your class to persist or log generated methods.

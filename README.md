@@ -1,6 +1,37 @@
-# SelfAgency
+> [!CAUTION]
+> This is an experiment. It may not be fit for any specific purpose.
 
-LLM-powered runtime method generation for Ruby classes. Describe what you want in plain English, get working methods back.
+<div align="center">
+  <h1>SelfAgency</h1>
+  <p><strong>LLM-powered runtime method generation for Ruby classes.</strong></p>
+</div>
+
+<br/>
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/assets/images/self_agency.gif" alt="SelfAgency Demo" width="100%">
+      <br/>
+      <strong><a href="https://madbomber.github.io/self_agency">Documentation</a></strong>
+    </td>
+    <td width="50%" valign="top">
+      <h3>Key Features</h3>
+      <ul>
+        <li><strong>Natural language to Ruby methods</strong> — describe what you want, get working code</li>
+        <li><strong>Multiple methods at once</strong> — generate related methods in a single call</li>
+        <li><strong>Three scopes</strong> — instance, singleton, and class methods</li>
+        <li><strong>Two-stage LLM pipeline</strong> — shape the prompt, then generate code</li>
+        <li><strong>Security by default</strong> — static analysis + runtime sandbox</li>
+        <li><strong>Source inspection</strong> — view generated code with <code>_source_for</code></li>
+        <li><strong>Save to files</strong> — persist as subclasses with <code>_save!</code></li>
+        <li><strong>Provider agnostic</strong> — any LLM via <a href="https://github.com/crmne/ruby_llm">ruby_llm</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<br/>
 
 ## Installation
 
@@ -106,6 +137,52 @@ puts foo._source_for(:file_defined_method)
 ```
 
 Returns `nil` if the method doesn't exist or its source is unavailable.
+
+### Saving generated methods to a file
+
+`_save!` writes the object's generated methods as a subclass in a Ruby source file:
+
+```ruby
+foo._("an instance method to add two integers")
+foo._("an instance method to subtract two integers")
+
+foo._save!(as: :calculator)
+# Writes calculator.rb:
+#   require_relative "foo"
+#
+#   class Calculator < Foo
+#     def add(a, b)
+#       a + b
+#     end
+#
+#     def subtract(a, b)
+#       a - b
+#     end
+#   end
+```
+
+`as:` is required. It accepts a String or Symbol. Snake case is converted to CamelCase for the class name:
+
+```ruby
+foo._save!(as: :weather_analyst)  # → class WeatherAnalyst < Foo in weather_analyst.rb
+foo._save!(as: "WeatherAnalyst")  # → same result
+```
+
+Override the default file path with `path:`:
+
+```ruby
+foo._save!(as: :calculator, path: "lib/calculator.rb")
+```
+
+This is especially useful when multiple instances of the same class have different generated methods. Each instance saves as a distinct subclass:
+
+```ruby
+collector = Robot.new(name: "Collector", ...)
+analyst   = Robot.new(name: "Analyst", ...)
+
+collector._save!(as: collector.name)  # → collector.rb with class Collector < Robot
+analyst._save!(as: analyst.name)      # → analyst.rb   with class Analyst < Robot
+```
 
 ### Lifecycle hook
 

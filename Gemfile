@@ -13,4 +13,5 @@ group :development, :test do
 
   gem "minitest", "~> 5.16"
   gem "debug_me"
+  gem "simplecov", require: false
 end
