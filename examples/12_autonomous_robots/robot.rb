@@ -133,15 +133,16 @@ class Robot
   end
 
   # Scan the backtrace for a method name that matches one of our generated capabilities.
+  # Handles both Ruby <3.4 (`method') and Ruby >=3.4 ('Class#method') backtrace formats.
   def identify_failing_method(error)
     return :execute_task unless error.backtrace
 
     error.backtrace.each do |line|
-      match = line.match(/`(\w+)'/)
+      match = line.match(/in ['`](?:\w+#)?(\w+)'/)
       next unless match
 
       method_name = match[1].to_sym
-      return method_name if @capabilities.include?(method_name)
+      return method_name if @capabilities.include?(method_name) && method_name != :execute_task
     end
 
     :execute_task
