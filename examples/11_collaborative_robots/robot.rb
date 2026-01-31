@@ -8,8 +8,8 @@
 #   SelfAgency handles shape -> generate -> validate -> sandbox eval.
 
 require "json"
-require_relative "message_bus"
-require_relative "../../lib/self_agency"
+require_relative "../lib/message_bus"
+require_relative "../lib/setup"
 
 class Robot
   include SelfAgency

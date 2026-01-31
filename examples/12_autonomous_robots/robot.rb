@@ -11,8 +11,8 @@
 #   method that calls the helpers in whatever order the LLM decides.
 
 require "json"
-require_relative "../11_collaborative_robots/message_bus"
-require_relative "../../lib/self_agency"
+require_relative "../lib/message_bus"
+require_relative "../lib/setup"
 
 class Robot
   include SelfAgency
@@ -64,6 +64,7 @@ class Robot
 
     begin
       arity = method(:execute_task).arity
+      puts "#{@name}: Running execute_task (input: #{input.class})"
 
       if arity == 0
         execute_task
@@ -75,7 +76,7 @@ class Robot
       puts "#{@name}: Error (attempt #{attempts}/#{MAX_REPAIR_ATTEMPTS}): #{error.class}: #{error.message}"
 
       if attempts < MAX_REPAIR_ATTEMPTS
-        repair_method(error)
+        repair_method(error, input)
         retry
       else
         puts "#{@name}: MALFUNCTION — failed after #{MAX_REPAIR_ATTEMPTS} repair attempts: #{error.message}"
@@ -104,24 +105,41 @@ class Robot
   private
 
   # Self-repair: identify the failing method from the backtrace, regenerate it via LLM.
-  def repair_method(error)
+  # Includes goal, capabilities, input shape, and sibling source for full context.
+  def repair_method(error, input = nil)
     failing_method = identify_failing_method(error)
     current_source = find_generated_source(failing_method)
+    puts "#{@name}: Repairing #{failing_method.inspect}"
+
+    # Build a snapshot of all generated method sources for context
+    sibling_sources = @generation_log
+      .select { |e| e[:method_name] != failing_method }
+      .map { |e| "  def #{e[:method_name]}(...) — see generation log" }
+      .join("\n")
+
+    # Describe the input data shape so the LLM understands what it's working with
+    input_shape = describe_data_shape(input)
 
     description = <<~DESC
-      Fix the following Ruby instance method named '#{failing_method}'.
+      Fix the Ruby singleton method '#{failing_method}' on this Robot instance.
 
-      Current source code:
+      Robot's overall goal: #{@goal}
+      Generated capabilities on this object: #{@capabilities.inspect}
+
+      Current source code of '#{failing_method}':
       #{current_source}
 
-      It raised this error at runtime:
+      Runtime error:
         #{error.class}: #{error.message}
 
-      Relevant backtrace:
+      Backtrace (top 5):
         #{error.backtrace&.first(5)&.join("\n    ")}
+
+      #{input_shape}
 
       Produce a corrected version of this method that avoids the error.
       Keep the same method name and signature. Only define this one method.
+      Fix the bug while preserving the method's intent.
     DESC
 
     defined_methods = _(description, scope: :singleton)
@@ -152,6 +170,41 @@ class Robot
   def find_generated_source(method_name)
     entry = @generation_log.reverse.find { |e| e[:method_name] == method_name }
     entry ? entry[:code] : "(source not found)"
+  end
+
+  # Build a human-readable description of the input data shape for the repair prompt.
+  # Shows class, keys, and a sample element so the LLM understands the actual structure.
+  def describe_data_shape(input)
+    return "This method takes no external input." if input.nil?
+
+    lines = ["The execute_task method received input of type #{input.class}."]
+
+    case input
+    when Hash
+      lines << "Top-level keys: #{input.keys.inspect}"
+      input.each do |key, value|
+        case value
+        when Array
+          lines << "  input[#{key.inspect}] is an Array with #{value.size} element(s)."
+          if value.first.is_a?(Hash)
+            lines << "  Sample element keys: #{value.first.keys.inspect}"
+            lines << "  Sample element: #{value.first.inspect[0, 200]}"
+          end
+        else
+          lines << "  input[#{key.inspect}] is a #{value.class}: #{value.inspect[0, 100]}"
+        end
+      end
+    when Array
+      lines << "Array with #{input.size} element(s)."
+      if input.first.is_a?(Hash)
+        lines << "Sample element keys: #{input.first.keys.inspect}"
+        lines << "Sample element: #{input.first.inspect[0, 200]}"
+      end
+    else
+      lines << "Value preview: #{input.inspect[0, 200]}"
+    end
+
+    lines.join("\n")
   end
 
   # Layer 1 — Ask the LLM to decompose a high-level goal into helper method specs.
