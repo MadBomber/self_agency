@@ -3,6 +3,6 @@ def standard_deviation
   
   mean = @data.sum.to_f / @data.length
   squared_differences = @data.map { |value| (value - mean) ** 2 }
-  variance = squared_differences.sum.to_f / squared_differences.length
-  Math.sqrt(variance)
+  mean_of_squared_differences = squared_differences.sum.to_f / @data.length
+  Math.sqrt(mean_of_squared_differences)
 end

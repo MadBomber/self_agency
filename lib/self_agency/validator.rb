@@ -47,7 +47,9 @@ module SelfAgency
   def self_agency_validate!(code)
     raise ValidationError, "code is empty" if code.empty?
     raise ValidationError, "missing def...end structure" unless code.match?(/\bdef\s+\S+.*?\bend\b/m)
-    raise SecurityError, "dangerous pattern detected" if code.match?(DANGEROUS_PATTERNS)
+    if (match = code.match(DANGEROUS_PATTERNS))
+      raise SecurityError, "dangerous pattern detected: #{match[0].strip}"
+    end
 
     RubyVM::InstructionSequence.compile(code)
   rescue SyntaxError => e

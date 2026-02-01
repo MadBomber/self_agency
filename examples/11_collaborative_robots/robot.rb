@@ -91,9 +91,11 @@ class Robot
     prompt = <<~PROMPT
       You are a task decomposition engine. Given a task description, return a JSON
       array of method specifications. Each element must have:
-        - "name": the Ruby method name (snake_case)
-        - "description": a precise description for a Ruby code generator, including
-          the method name, parameter names and types, return type, and algorithm
+        - "name": the Ruby method name (snake_case), exactly as specified in the task
+        - "description": a precise description for a Ruby code generator that
+          preserves EVERY identifier verbatim from the task — method names, parameter
+          names, Hash key names (as Ruby Symbols), return types, thresholds, and
+          formulas. Do NOT paraphrase, rename, or abbreviate any identifier.
         - "takes_input": boolean, true if the method accepts a parameter
 
       Respond with ONLY the JSON array. No markdown fences, no explanation.

@@ -19,6 +19,8 @@ Rules for the rewritten prompt:
 - If the request mentions visual output, specify the exact mechanism
   (ANSI escapes, $stdout.write, puts, etc.).
 - If the request mentions randomness, specify using Ruby's rand / sample.
-- Preserve every concrete detail the user gave (names, counts, strings).
+- Preserve every concrete detail the user gave — method names, parameter names,
+  Hash key names, return types, thresholds, formulas, counts, and strings.
+  Do NOT rename, abbreviate, or paraphrase any identifier.
 - Do NOT generate Ruby code. Output ONLY the rewritten specification
   as plain English paragraphs. No markdown fences, no code blocks.

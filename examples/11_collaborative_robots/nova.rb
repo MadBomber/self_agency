@@ -3,70 +3,59 @@
 require_relative "robot"
 
 class Nova < Robot
-  # Computes basic statistics from raw weather data. Takes a Hash parameter 'data' containing :raw_data (Array of Hashes with :temperature, :humidity, :wind_speed Floats). Returns a Hash with :avg_temp, :min_temp, :max_temp, :avg_humidity, :avg_wind (all rounded to 1 decimal), :readings (count of readings), and :source. Uses .round(1) for all Float results.
-  def compute_weather_statistics(data)
+  # Compute basic statistics from raw data. Takes one parameter (data), a Hash with key :raw_data containing an Array of Hashes. Each inner Hash has keys :temperature, :humidity, :wind_speed (all Floats). Compute and return a Hash with: :avg_temp => average of all :temperature values, rounded to 1 decimal, :min_temp => minimum :temperature value, rounded to 1 decimal, :max_temp => maximum :temperature value, rounded to 1 decimal, :avg_humidity => average of all :humidity values, rounded to 1 decimal, :avg_wind => average of all :wind_speed values, rounded to 1 decimal, :readings => data[:readings_count], :source => data[:source]. Use .round(1) for all Float results.
+  def compute_statistics(data)
     raw_data = data[:raw_data]
+    readings_count = data[:readings_count]
+    source = data[:source]
     
-    temperatures = []
-    humidities = []
-    wind_speeds = []
+    temps = raw_data.map { |reading| reading[:temperature] }
+    humidities = raw_data.map { |reading| reading[:humidity] }
+    wind_speeds = raw_data.map { |reading| reading[:wind_speed] }
     
-    raw_data.each do |reading|
-      temperatures << reading[:temperature]
-      humidities << reading[:humidity]
-      wind_speeds << reading[:wind_speed]
-    end
-    
-    avg_temp = (temperatures.sum / temperatures.length.to_f).round(1)
-    min_temp = temperatures.min.round(1)
-    max_temp = temperatures.max.round(1)
+    avg_temp = (temps.sum / temps.length.to_f).round(1)
+    min_temp = temps.min.round(1)
+    max_temp = temps.max.round(1)
     avg_humidity = (humidities.sum / humidities.length.to_f).round(1)
     avg_wind = (wind_speeds.sum / wind_speeds.length.to_f).round(1)
-    readings = raw_data.length
-    source = data[:source] || "unknown"
     
     {
-      avg_temp: avg_temp,
-      min_temp: min_temp,
-      max_temp: max_temp,
-      avg_humidity: avg_humidity,
-      avg_wind: avg_wind,
-      readings: readings,
-      source: source
+      :avg_temp => avg_temp,
+      :min_temp => min_temp,
+      :max_temp => max_temp,
+      :avg_humidity => avg_humidity,
+      :avg_wind => avg_wind,
+      :readings => readings_count,
+      :source => source
     }
   end
 
-  # Classifies weather conditions based on average temperature, humidity, and wind speed. Takes a Hash parameter 'stats' with :avg_temp, :avg_humidity, :avg_wind (all Floats). Returns a new Hash with the original stats merged with three new classification keys: :temperature_class ("cold", "mild", or "hot"), :humidity_class ("dry", "comfortable", or "humid"), and :wind_class ("calm", "breezy", or "windy"). Preserves all original keys in the input hash.
-  def classify_weather(stats)
-    result = stats.dup
-    temp = stats[:avg_temp]
-    humidity = stats[:avg_humidity]
-    wind = stats[:avg_wind]
-    
-    if temp <= 10.0
-      result[:temperature_class] = "cold"
-    elsif temp <= 25.0
-      result[:temperature_class] = "mild"
-    else
-      result[:temperature_class] = "hot"
-    end
-    
-    if humidity <= 30.0
-      result[:humidity_class] = "dry"
-    elsif humidity <= 60.0
-      result[:humidity_class] = "comfortable"
-    else
-      result[:humidity_class] = "humid"
-    end
-    
-    if wind <= 5.0
-      result[:wind_class] = "calm"
-    elsif wind <= 15.0
-      result[:wind_class] = "breezy"
-    else
-      result[:wind_class] = "windy"
-    end
-    
-    result
+  # Classify weather conditions based on statistics. Takes one parameter (stats), a Hash with keys :avg_temp, :avg_humidity, :avg_wind (all Floats). Determine classifications: - temperature_class: "cold" if avg_temp < 15, "mild" if < 25, else "hot" - humidity_class: "dry" if avg_humidity < 40, "comfortable" if < 70, else "humid" - wind_class: "calm" if avg_wind < 8, "breezy" if < 15, else "windy" Return stats.merge with the three new keys (:temperature_class, :humidity_class, :wind_class) added, preserving all existing keys.
+  def classify_weather_conditions(stats)
+    temperature_class = if stats[:avg_temp] < 15.0
+                          "cold"
+                        elsif stats[:avg_temp] < 25.0
+                          "mild"
+                        else
+                          "hot"
+                        end
+
+    humidity_class = if stats[:avg_humidity] < 40.0
+                       "dry"
+                     elsif stats[:avg_humidity] < 70.0
+                       "comfortable"
+                     else
+                       "humid"
+                     end
+
+    wind_class = if stats[:avg_wind] < 8.0
+                   "calm"
+                 elsif stats[:avg_wind] < 15.0
+                   "breezy"
+                 else
+                   "windy"
+                 end
+
+    stats.merge(:temperature_class => temperature_class, :humidity_class => humidity_class, :wind_class => wind_class)
   end
 end
