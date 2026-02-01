@@ -9,7 +9,7 @@ module SelfAgency
   class Configuration
     attr_accessor :provider, :model, :api_base,
                   :request_timeout, :max_retries, :retry_interval,
-                  :template_directory, :generation_retries
+                  :template_directory, :generation_retries, :logger
 
     def initialize
       @provider           = :ollama
@@ -20,6 +20,7 @@ module SelfAgency
       @retry_interval     = 0.5
       @template_directory = File.join(__dir__, "prompts")
       @generation_retries = 3
+      @logger             = nil
     end
   end
 

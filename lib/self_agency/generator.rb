@@ -12,7 +12,10 @@ module SelfAgency
     response = chat.with_template(template_name, variables).complete
     response.content
   rescue StandardError => e
-    raise GenerationError, "LLM request failed (#{e.class}: #{e.message})"
+    raise GenerationError.new(
+      "LLM request failed (#{e.class}: #{e.message})",
+      stage: template_name.to_sym
+    )
   end
 
   # Pass 1: rewrite the user's casual prompt into a precise technical spec.

@@ -120,26 +120,45 @@ module SelfAgency
     self.class.self_agency_mutex.synchronize do
       SelfAgency.ensure_configured!
 
+      self_agency_log(:shape, "Shaping prompt for #{self.class.name} (#{scope})")
       shaped = self_agency_shape(description, scope)
-      raise GenerationError, "Prompt shaping failed (LLM returned nil)" unless shaped
+      unless shaped
+        raise GenerationError.new("Prompt shaping failed (LLM returned nil)", stage: :shape)
+      end
+      self_agency_log(:shape, "Shaped spec received")
 
       max_attempts = SelfAgency.configuration.generation_retries
       last_error   = nil
       gen_vars     = self_agency_generation_vars.merge(shaped_spec: shaped, previous_error: nil, previous_code: nil)
       code         = nil
 
-      max_attempts.times do
+      max_attempts.times.each do |attempt|
+        self_agency_log(:generate, "Generation attempt #{attempt + 1}/#{max_attempts}")
         raw = self_agency_ask_with_template(:generate, **gen_vars)
-        raise GenerationError, "Code generation failed (LLM returned nil)" unless raw
+        unless raw
+          raise GenerationError.new(
+            "Code generation failed (LLM returned nil)",
+            stage: :generate, attempt: attempt + 1
+          )
+        end
+        self_agency_log(:generate, "Raw code received")
 
         code = self_agency_sanitize(raw)
         begin
           self_agency_validate!(code)
+          self_agency_log(:validate, "Validation passed")
           last_error = nil
           break
-        rescue ValidationError, SecurityError => e
-          last_error = e
+        rescue ValidationError => e
+          self_agency_log(:validate, "Validation failed: #{e.message}")
+          last_error = ValidationError.new(e.message, generated_code: e.generated_code, attempt: attempt + 1)
           gen_vars = gen_vars.merge(previous_error: e.message, previous_code: code)
+          self_agency_log(:retry, "Retrying due to: #{e.message}") if attempt + 1 < max_attempts
+        rescue SecurityError => e
+          self_agency_log(:validate, "Security check failed: #{e.message}")
+          last_error = SecurityError.new(e.message, matched_pattern: e.matched_pattern, generated_code: e.generated_code)
+          gen_vars = gen_vars.merge(previous_error: e.message, previous_code: code)
+          self_agency_log(:retry, "Retrying due to: #{e.message}") if attempt + 1 < max_attempts
         end
       end
 
@@ -163,6 +182,7 @@ module SelfAgency
         name
       end
 
+      self_agency_log(:complete, "Installed #{method_names.size} method(s): #{method_names.join(', ')}")
       method_names
     end
   end
@@ -268,6 +288,19 @@ module SelfAgency
       self.class.self_agency_sandbox_module(:class).module_eval(class_code)
     else
       raise ValidationError, "unknown scope: #{scope.inspect}"
+    end
+  end
+
+  # Log a pipeline event via the configured logger.
+  # Accepts a callable (receives stage, message) or a Logger-compatible object.
+  def self_agency_log(stage, message)
+    logger = SelfAgency.configuration.logger
+    return unless logger
+
+    if logger.respond_to?(:call)
+      logger.call(stage, message)
+    elsif logger.respond_to?(:debug)
+      logger.debug("[SelfAgency:#{stage}] #{message}")
     end
   end
 

@@ -45,14 +45,20 @@ module SelfAgency
 
   # Validate the sanitized code. Raises on problems.
   def self_agency_validate!(code)
-    raise ValidationError, "code is empty" if code.empty?
-    raise ValidationError, "missing def...end structure" unless code.match?(/\bdef\s+\S+.*?\bend\b/m)
+    raise ValidationError.new("code is empty", generated_code: code) if code.empty?
+    unless code.match?(/\bdef\s+\S+.*?\bend\b/m)
+      raise ValidationError.new("missing def...end structure", generated_code: code)
+    end
     if (match = code.match(DANGEROUS_PATTERNS))
-      raise SecurityError, "dangerous pattern detected: #{match[0].strip}"
+      raise SecurityError.new(
+        "dangerous pattern detected: #{match[0].strip}",
+        matched_pattern: match[0].strip,
+        generated_code:  code
+      )
     end
 
     RubyVM::InstructionSequence.compile(code)
   rescue SyntaxError => e
-    raise ValidationError, "syntax error: #{e.message}"
+    raise ValidationError.new("syntax error: #{e.message}", generated_code: code)
   end
 end
