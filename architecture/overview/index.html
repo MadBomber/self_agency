@@ -274,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide/generating-methods/" class="md-tabs__link">
+        <a href="../../guide/how-to-use/" class="md-tabs__link">
           
   
   
@@ -638,6 +638,8 @@
       
         
       
+        
+      
     
     
     
@@ -680,6 +682,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1101,6 +1131,17 @@
     <span class="md-ellipsis">
       
         Module Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#thread-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thread Safety
       
     </span>
   </a>
@@ -1788,6 +1829,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#thread-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thread Safety
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#file-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1841,22 +1893,26 @@
 <p>SelfAgency uses a two-stage LLM pipeline with multi-layer security to generate and install methods at runtime.</p>
 <h2 id="pipeline">Pipeline<a class="headerlink" href="#pipeline" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>flowchart TD
-    A["User calls _('description')"] --&gt; B[ensure_configured!]
-    B --&gt; C[Shape Stage]
-    C --&gt; D{Shaped spec nil?}
-    D --&gt;|Yes| E[Raise GenerationError]
-    D --&gt;|No| F[Generate Stage]
-    F --&gt; G{Raw code nil?}
-    G --&gt;|Yes| E
-    G --&gt;|No| H[Sanitize]
-    H --&gt; I[Validate]
-    I --&gt; J{Valid?}
-    J --&gt;|No| K[Raise ValidationError or SecurityError]
-    J --&gt;|Yes| L[Sandbox Eval]
-    L --&gt; M[Split Methods]
-    M --&gt; N[Store Source]
-    N --&gt; O[Fire on_method_generated Hook]
-    O --&gt; P["Return Array&lt;Symbol&gt;"]</code></pre>
+    A["User calls _('description')"] --&gt; B[Acquire per-class mutex]
+    B --&gt; C[ensure_configured!]
+    C --&gt; D[Shape Stage]
+    D --&gt; E{Shaped spec nil?}
+    E --&gt;|Yes| F[Raise GenerationError]
+    E --&gt;|No| G[Generate Stage]
+    G --&gt; H{Raw code nil?}
+    H --&gt;|Yes| F
+    H --&gt;|No| I[Sanitize]
+    I --&gt; J[Validate]
+    J --&gt; K{Valid?}
+    K --&gt;|No| L{Retries left?}
+    L --&gt;|Yes| M[Feed error + code back to LLM]
+    M --&gt; G
+    L --&gt;|No| N[Raise ValidationError or SecurityError]
+    K --&gt;|Yes| O[Sandbox Eval]
+    O --&gt; P[Split Methods]
+    P --&gt; Q[Store Source + Version History]
+    Q --&gt; R[Fire on_method_generated Hook]
+    R --&gt; S["Return Array&lt;Symbol&gt;"]</code></pre>
 <h2 id="stage-1-shape">Stage 1: Shape<a class="headerlink" href="#stage-1-shape" title="Permanent link">&para;</a></h2>
 <p>The shape stage rewrites a casual language description into a precise Ruby method specification. It uses ERB templates from the <code>shape/</code> directory.</p>
 <p>The LLM receives class context:</p>
@@ -1870,6 +1926,7 @@
 <h2 id="stage-2-generate">Stage 2: Generate<a class="headerlink" href="#stage-2-generate" title="Permanent link">&para;</a></h2>
 <p>The generate stage takes the shaped specification and produces a <code>def...end</code> block. It uses templates from the <code>generate/</code> directory.</p>
 <p>The LLM receives the same class context plus the shaped specification from stage 1.</p>
+<p>If validation or security checks fail, the generate stage retries up to <code>generation_retries</code> times (default: 3). On each retry, the previous error message and failed code are injected into the generate template via <code>previous_error</code> and <code>previous_code</code> variables, allowing the LLM to self-correct.</p>
 <h2 id="post-processing">Post-Processing<a class="headerlink" href="#post-processing" title="Permanent link">&para;</a></h2>
 <p>After generation, the raw LLM output goes through three steps:</p>
 <h3 id="sanitize">Sanitize<a class="headerlink" href="#sanitize" title="Permanent link">&para;</a></h3>
@@ -1888,34 +1945,40 @@
 <li><strong>Syntax</strong> -- Must compile via <code>RubyVM::InstructionSequence.compile</code></li>
 </ol>
 <h3 id="sandbox-eval">Sandbox Eval<a class="headerlink" href="#sandbox-eval" title="Permanent link">&para;</a></h3>
-<p>The validated code is evaluated inside an anonymous module that includes <code>SelfAgency::Sandbox</code>. This module shadows dangerous Kernel methods, placing them ahead of Kernel in Ruby's method resolution order (MRO).</p>
-<p>The module is then prepended to the appropriate target:</p>
+<p>The validated code is evaluated inside a sandboxed module that includes <code>SelfAgency::Sandbox</code>. This module shadows dangerous Kernel methods, placing them ahead of Kernel in Ruby's method resolution order (MRO).</p>
+<p>Sandbox modules are <strong>cached per scope</strong> to prevent ancestor chain accumulation across multiple <code>_()</code> calls:</p>
 <table>
 <thead>
 <tr>
 <th>Scope</th>
 <th>Prepend Target</th>
+<th>Cache Level</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>:instance</code></td>
 <td><code>self.class</code></td>
+<td>Per class</td>
 </tr>
 <tr>
 <td><code>:singleton</code></td>
 <td><code>singleton_class</code></td>
+<td>Per instance</td>
 </tr>
 <tr>
 <td><code>:class</code></td>
 <td><code>self.class.singleton_class</code></td>
+<td>Per class</td>
 </tr>
 </tbody>
 </table>
+<p>On the first <code>_()</code> call for a given scope, a new anonymous module is created, prepended, and cached. Subsequent calls reuse the same module, defining new methods into it rather than creating additional anonymous modules.</p>
 <h2 id="module-structure">Module Structure<a class="headerlink" href="#module-structure" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>classDiagram
     class SelfAgency {
         +_(description, scope) Array~Symbol~
+        +self_agency_generate(description, scope) Array~Symbol~
         +_source_for(method_name) String?
         +_save!(as, path) String
         +on_method_generated(name, scope, code)
@@ -1923,6 +1986,7 @@
 
     class ClassMethods {
         +_source_for(method_name) String?
+        +_source_versions_for(method_name) Array~Hash~
     }
 
     class Configuration {
@@ -1933,6 +1997,8 @@
         +max_retries Integer
         +retry_interval Float
         +template_directory String
+        +generation_retries Integer
+        +logger Proc/Logger/nil
     }
 
     class Sandbox {
@@ -1969,6 +2035,13 @@
     SelfAgency --&gt; Validator : validates code
     SelfAgency --&gt; Generator : calls LLM
     SelfAgency --&gt; Saver : persists methods</code></pre>
+<h2 id="thread-safety">Thread Safety<a class="headerlink" href="#thread-safety" title="Permanent link">&para;</a></h2>
+<p>SelfAgency uses two mutexes to ensure thread-safe operation:</p>
+<ul>
+<li><strong><code>CONFIG_MUTEX</code></strong> (module-level) -- Serializes <code>SelfAgency.configure</code> and <code>SelfAgency.reset!</code> calls so that concurrent configuration changes do not interleave.</li>
+<li><strong>Per-class mutex</strong> (<code>@self_agency_mutex</code>) -- Initialized when a class includes <code>SelfAgency</code>. Serializes the entire <code>_()</code> pipeline per class so that concurrent method generation calls do not interfere with each other.</li>
+</ul>
+<p>The per-class mutex wraps the full pipeline: shape, generate, validate (with retries), eval, source storage, and lifecycle hook. This means only one thread can generate methods for a given class at a time, but different classes can generate concurrently.</p>
 <h2 id="file-layout">File Layout<a class="headerlink" href="#file-layout" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>lib/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  self_agency.rb            # Main module, public API, eval logic

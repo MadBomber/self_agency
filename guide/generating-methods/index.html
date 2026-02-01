@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://madbomber.github.io/self_agency/guide/generating-methods/">
       
       
-        <link rel="prev" href="../../getting-started/quick-start/">
+        <link rel="prev" href="../how-to-use/">
       
       
         <link rel="next" href="../scopes/">
@@ -276,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../how-to-use/" class="md-tabs__link">
           
   
   
@@ -640,6 +640,8 @@
       
         
       
+        
+      
     
     
     
@@ -685,6 +687,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -803,6 +833,17 @@
     <span class="md-ellipsis">
       
         Method Overrides
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatic-retries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Retries
       
     </span>
   </a>
@@ -1710,6 +1751,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#automatic-retries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Retries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#error-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1832,28 +1884,44 @@
 </span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
 </span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="n">fmt</span><span class="o">.</span><span class="n">greet</span><span class="p">(</span><span class="s2">&quot;World&quot;</span><span class="p">)</span><span class="w">  </span><span class="c1">#=&gt; &quot;Greetings, World! Welcome aboard.&quot;</span>
 </span></code></pre></div>
-<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
-<p><code>_()</code> can raise three types of errors:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">begin</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">calc</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;a method to do something&quot;</span><span class="p">)</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">GenerationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="c1"># LLM returned nil</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">ValidationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="c1"># Code is empty, malformed, or has syntax errors</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">SecurityError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="c1"># Dangerous pattern detected in generated code</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">end</span>
+<h2 id="automatic-retries">Automatic Retries<a class="headerlink" href="#automatic-retries" title="Permanent link">&para;</a></h2>
+<p>When validation or security checks fail, SelfAgency automatically retries code generation. On each retry, the previous error message and failed code are fed back to the LLM so it can self-correct.</p>
+<p>The number of attempts is controlled by <code>generation_retries</code> (default: <code>3</code>):</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">generation_retries</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w">  </span><span class="c1"># try up to 5 times</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="c1"># ...</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">end</span>
 </span></code></pre></div>
-<p>Or catch all SelfAgency errors at once:</p>
+<p>If all attempts fail, the last <code>ValidationError</code> or <code>SecurityError</code> is raised. The error includes an <code>attempt</code> attribute indicating which attempt produced it.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only validation and security failures trigger retries. If the LLM returns <code>nil</code> (a <code>GenerationError</code>), the error is raised immediately with no retry.</p>
+</div>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
+<p><code>_()</code> can raise three types of errors. Each error class carries additional attributes for programmatic inspection:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">begin</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="n">calc</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;a method to do something&quot;</span><span class="p">)</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">Error</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Generation failed: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">end</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">GenerationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="w">    </span><span class="c1">#=&gt; :shape or :generate</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="n">e</span><span class="o">.</span><span class="n">attempt</span><span class="w">  </span><span class="c1">#=&gt; Integer (attempt number, if during retry)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">ValidationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="n">e</span><span class="o">.</span><span class="n">generated_code</span><span class="w">  </span><span class="c1">#=&gt; String (the code that failed)</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="n">e</span><span class="o">.</span><span class="n">attempt</span><span class="w">         </span><span class="c1">#=&gt; Integer (attempt number, if during retry)</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">SecurityError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="n">e</span><span class="o">.</span><span class="n">matched_pattern</span><span class="w">  </span><span class="c1">#=&gt; String (the pattern that triggered the error)</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="n">e</span><span class="o">.</span><span class="n">generated_code</span><span class="w">   </span><span class="c1">#=&gt; String (the code that failed)</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="k">end</span>
+</span></code></pre></div>
+<p>Or catch all SelfAgency errors at once:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">begin</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">calc</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;a method to do something&quot;</span><span class="p">)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">Error</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Generation failed: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">end</span>
 </span></code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>LLM communication failures (network errors, timeouts, API errors) are rescued internally and surface as <code>GenerationError</code> with message "Code generation failed (LLM returned nil)" or "Prompt shaping failed (LLM returned nil)". If generation consistently fails, verify your LLM provider is running and reachable.</p>
+<p>LLM communication failures (network errors, timeouts, API errors) are wrapped and re-raised as <code>GenerationError</code> with a message like <code>"LLM request failed (Faraday::TimeoutError: timeout)"</code>. The original exception class and message are preserved in the error message. If generation consistently fails, verify your LLM provider is running and reachable.</p>
 </div>
 <p>See <a href="../../api/errors/">Errors</a> for the full error hierarchy.</p>
 
@@ -1893,7 +1961,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../getting-started/quick-start/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick Start">
+          <a href="../how-to-use/" class="md-footer__link md-footer__link--prev" aria-label="Previous: How to Use">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1903,7 +1971,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Quick Start
+                How to Use
               </div>
             </div>
           </a>

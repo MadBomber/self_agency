@@ -274,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="guide/generating-methods/" class="md-tabs__link">
+        <a href="guide/how-to-use/" class="md-tabs__link">
           
   
   
@@ -641,6 +641,8 @@
       
         
       
+        
+      
     
     
     
@@ -683,6 +685,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1640,9 +1670,9 @@
     </td>
     <td width="50%" valign="top">
       <ul>
-        <li><strong>Security by default</strong> — static analysis + runtime sandbox</li>
-        <li><strong>Source inspection</strong> — view generated code with <code>_source_for</code></li>
-        <li><strong>Save to files</strong> — persist as subclasses with <code>_save!</code></li>
+        <li><strong>Security by default</strong> — 26 static patterns + runtime sandbox</li>
+        <li><strong>Automatic retries</strong> — self-corrects on validation failure</li>
+        <li><strong>Source inspection &amp; versioning</strong> — view code and track history</li>
         <li><strong>Provider agnostic</strong> — any LLM via <a href="https://github.com/crmne/ruby_llm">ruby_llm</a></li>
       </ul>
     </td>
@@ -1680,7 +1710,8 @@ This is an experiment. It may not be fit for any specific purpose.  Its micro-pr
 <li><strong>Generate</strong> -- Produces <code>def...end</code> block(s) from the shaped spec</li>
 <li><strong>Sanitize</strong> -- Strips markdown fences and <code>&lt;think&gt;</code> blocks</li>
 <li><strong>Validate</strong> -- Checks for empty code, missing <code>def...end</code>, syntax errors, and dangerous patterns</li>
-<li><strong>Sandbox Eval</strong> -- Evaluates code inside an anonymous module that shadows dangerous Kernel methods</li>
+<li><strong>Retry</strong> -- On validation/security failure, feeds the error back to the LLM for self-correction (up to <code>generation_retries</code> attempts)</li>
+<li><strong>Sandbox Eval</strong> -- Evaluates code inside a cached sandbox module that shadows dangerous Kernel methods</li>
 </ol>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1688,7 +1719,7 @@ This is an experiment. It may not be fit for any specific purpose.  Its micro-pr
 <li>An LLM provider (Ollama by default, or any provider supported by ruby_llm)</li>
 </ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
-<p>Head to the <a href="getting-started/installation/">Installation</a> guide to add SelfAgency to your project, then follow the <a href="getting-started/quick-start/">Quick Start</a> for a complete walkthrough.</p>
+<p>Head to the <a href="getting-started/installation/">Installation</a> guide to add SelfAgency to your project, then follow the <a href="getting-started/quick-start/">Quick Start</a> for a complete walkthrough. For a broader perspective on where SelfAgency fits in your development process, see <a href="guide/how-to-use/">How to Use SelfAgency</a>.</p>
 
 
 

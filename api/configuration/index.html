@@ -274,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide/generating-methods/" class="md-tabs__link">
+        <a href="../../guide/how-to-use/" class="md-tabs__link">
           
   
   
@@ -638,6 +638,8 @@
       
         
       
+        
+      
     
     
     
@@ -680,6 +682,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1883,6 +1913,18 @@
 <td><code>lib/self_agency/prompts</code></td>
 <td>Path to ERB prompt templates</td>
 </tr>
+<tr>
+<td><code>generation_retries</code></td>
+<td><code>Integer</code></td>
+<td><code>3</code></td>
+<td>Max retry attempts when validation or security checks fail</td>
+</tr>
+<tr>
+<td><code>logger</code></td>
+<td><code>Proc</code>, <code>Logger</code>, or <code>nil</code></td>
+<td><code>nil</code></td>
+<td>Logger for pipeline events (callable or Logger-compatible)</td>
+</tr>
 </tbody>
 </table>
 <p>All attributes are read/write via <code>attr_accessor</code>.</p>
@@ -1919,7 +1961,7 @@
 </span></code></pre></div>
 <hr />
 <h3 id="selfagencyincludedbase"><code>SelfAgency.included(base)</code><a class="headerlink" href="#selfagencyincludedbase" title="Permanent link">&para;</a></h3>
-<p>Hook called when a class includes <code>SelfAgency</code>. Extends the including class with <code>SelfAgency::ClassMethods</code>, which provides the class-level <code>_source_for</code> method.</p>
+<p>Hook called when a class includes <code>SelfAgency</code>. Extends the including class with <code>SelfAgency::ClassMethods</code> and initializes a per-class mutex for thread-safe pipeline execution.</p>
 <p>This is called automatically by Ruby's <code>include</code> mechanism; you do not need to call it directly.</p>
 
 

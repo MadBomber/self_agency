@@ -274,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide/generating-methods/" class="md-tabs__link">
+        <a href="../../guide/how-to-use/" class="md-tabs__link">
           
   
   
@@ -638,6 +638,8 @@
       
         
       
+        
+      
     
     
     
@@ -680,6 +682,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1171,6 +1201,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#self_agency_generatedescription-scope-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        self_agency_generate(description, scope: :instance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#_source_formethod_name" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1225,6 +1266,17 @@
     <span class="md-ellipsis">
       
         _source_for(method_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_source_versions_formethod_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _source_versions_for(method_name)
       
     </span>
   </a>
@@ -1701,6 +1753,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#self_agency_generatedescription-scope-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        self_agency_generate(description, scope: :instance)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#_source_formethod_name" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1755,6 +1818,17 @@
     <span class="md-ellipsis">
       
         _source_for(method_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_source_versions_formethod_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _source_versions_for(method_name)
       
     </span>
   </a>
@@ -1877,6 +1951,12 @@
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">#=&gt; [:ping]</span>
 </span></code></pre></div>
 <hr />
+<h3 id="self_agency_generatedescription-scope-instance"><code>self_agency_generate(description, scope: :instance)</code><a class="headerlink" href="#self_agency_generatedescription-scope-instance" title="Permanent link">&para;</a></h3>
+<p>Alias for <code>_()</code>. Provides a named alternative when <code>_</code> conflicts with other conventions (e.g., i18n):</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">self_agency_generate</span><span class="p">(</span><span class="s2">&quot;a method to add two integers&quot;</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">#=&gt; [:add]</span>
+</span></code></pre></div>
+<hr />
 <h3 id="_source_formethod_name"><code>_source_for(method_name)</code><a class="headerlink" href="#_source_formethod_name" title="Permanent link">&para;</a></h3>
 <p>Return the source code for a method, or <code>nil</code> if unavailable.</p>
 <p>For LLM-generated methods, returns the code with the original description as a comment header. For file-defined methods, falls back to the <code>method_source</code> gem.</p>
@@ -1899,11 +1979,11 @@
 </table>
 <p><strong>Returns:</strong> <code>String</code> or <code>nil</code>.</p>
 <p><strong>Example:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">puts</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">_source_for</span><span class="p">(</span><span class="ss">:add</span><span class="p">)</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># &gt;&gt; # an instance method to add two integers</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># &gt;&gt; def add(a, b)</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># &gt;&gt;   a + b</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># &gt;&gt; end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">puts</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">_source_for</span><span class="p">(</span><span class="ss">:add</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># &gt;&gt; # an instance method to add two integers</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># &gt;&gt; def add(a, b)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># &gt;&gt;   a + b</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># &gt;&gt; end</span>
 </span></code></pre></div>
 <hr />
 <h3 id="_saveas-path-nil"><code>_save!(as:, path: nil)</code><a class="headerlink" href="#_saveas-path-nil" title="Permanent link">&para;</a></h3>
@@ -1958,11 +2038,11 @@
 </tbody>
 </table>
 <p><strong>Example:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">_save!</span><span class="p">(</span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:calculator</span><span class="p">)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1">#=&gt; &quot;calculator.rb&quot;</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">_save!</span><span class="p">(</span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:calculator</span><span class="p">,</span><span class="w"> </span><span class="ss">path</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;lib/calculator.rb&quot;</span><span class="p">)</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1">#=&gt; &quot;lib/calculator.rb&quot;</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">_save!</span><span class="p">(</span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:calculator</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">#=&gt; &quot;calculator.rb&quot;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="o">.</span><span class="n">_save!</span><span class="p">(</span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:calculator</span><span class="p">,</span><span class="w"> </span><span class="ss">path</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;lib/calculator.rb&quot;</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1">#=&gt; &quot;lib/calculator.rb&quot;</span>
 </span></code></pre></div>
 <hr />
 <h3 id="on_method_generatedmethod_name-scope-code"><code>on_method_generated(method_name, scope, code)</code><a class="headerlink" href="#on_method_generatedmethod_name-scope-code" title="Permanent link">&para;</a></h3>
@@ -1996,9 +2076,9 @@
 </table>
 <p><strong>Default behavior:</strong> No-op.</p>
 <p><strong>Example:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_method_generated</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span><span class="w"> </span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">code</span><span class="p">)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="no">File</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;generated/</span><span class="si">#{</span><span class="n">method_name</span><span class="si">}</span><span class="s2">.rb&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">code</span><span class="p">)</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_method_generated</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span><span class="w"> </span><span class="n">scope</span><span class="p">,</span><span class="w"> </span><span class="n">code</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="no">File</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;generated/</span><span class="si">#{</span><span class="n">method_name</span><span class="si">}</span><span class="s2">.rb&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">code</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">end</span>
 </span></code></pre></div>
 <hr />
 <h2 id="class-methods-via-classmethods">Class Methods (via ClassMethods)<a class="headerlink" href="#class-methods-via-classmethods" title="Permanent link">&para;</a></h2>
@@ -2023,7 +2103,69 @@
 </table>
 <p><strong>Returns:</strong> <code>String</code> or <code>nil</code>.</p>
 <p><strong>Example:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">puts</span><span class="w"> </span><span class="no">MyClass</span><span class="o">.</span><span class="n">_source_for</span><span class="p">(</span><span class="ss">:add</span><span class="p">)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">puts</span><span class="w"> </span><span class="no">MyClass</span><span class="o">.</span><span class="n">_source_for</span><span class="p">(</span><span class="ss">:add</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="_source_versions_formethod_name"><code>_source_versions_for(method_name)</code><a class="headerlink" href="#_source_versions_formethod_name" title="Permanent link">&para;</a></h3>
+<p>Return the version history for a generated method. Each entry records the code, description, generating instance, and timestamp.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>method_name</code></td>
+<td><code>Symbol</code> or <code>String</code></td>
+<td>The method to look up</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>Array&lt;Hash&gt;</code> -- each Hash contains:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:code</code></td>
+<td><code>String</code></td>
+<td>The generated source code</td>
+</tr>
+<tr>
+<td><code>:description</code></td>
+<td><code>String</code></td>
+<td>The description passed to <code>_()</code></td>
+</tr>
+<tr>
+<td><code>:instance_id</code></td>
+<td><code>Integer</code></td>
+<td><code>object_id</code> of the instance that generated it</td>
+</tr>
+<tr>
+<td><code>:at</code></td>
+<td><code>Time</code></td>
+<td>When the method was generated</td>
+</tr>
+</tbody>
+</table>
+<p>Returns an empty array if no versions exist.</p>
+<p><strong>Example:</strong></p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">obj</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;add two integers&quot;</span><span class="p">)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">obj</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;add two integers, raise ArgumentError if either is negative&quot;</span><span class="p">)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">versions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MyClass</span><span class="o">.</span><span class="n">_source_versions_for</span><span class="p">(</span><span class="ss">:add</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">versions</span><span class="o">.</span><span class="n">size</span><span class="w">  </span><span class="c1">#=&gt; 2</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">versions</span><span class="o">.</span><span class="n">last</span><span class="o">[</span><span class="ss">:at</span><span class="o">]</span><span class="w">          </span><span class="c1">#=&gt; 2025-01-31 12:34:56 -0500</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">versions</span><span class="o">.</span><span class="n">last</span><span class="o">[</span><span class="ss">:description</span><span class="o">]</span><span class="w"> </span><span class="c1">#=&gt; &quot;add two integers, raise ArgumentError if either is negative&quot;</span>
 </span></code></pre></div>
 
 

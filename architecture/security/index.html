@@ -274,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide/generating-methods/" class="md-tabs__link">
+        <a href="../../guide/how-to-use/" class="md-tabs__link">
           
   
   
@@ -638,6 +638,8 @@
       
         
       
+        
+      
     
     
     
@@ -680,6 +682,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1776,8 +1806,52 @@
 <td>Dynamic code evaluation</td>
 </tr>
 <tr>
-<td><code>\bsend\b(?!\s*\()</code></td>
-<td>Method dispatch without parentheses (blocks <code>send :foo</code> but allows <code>send(</code> with parens)</td>
+<td><code>\bsend\b</code></td>
+<td>Method dispatch (<code>send</code>)</td>
+</tr>
+<tr>
+<td><code>\bpublic_send\b</code></td>
+<td>Method dispatch (<code>public_send</code>)</td>
+</tr>
+<tr>
+<td><code>\bmethod\s*\(</code></td>
+<td>Method object retrieval</td>
+</tr>
+<tr>
+<td><code>\bconst_get\b</code></td>
+<td>Constant lookup bypass</td>
+</tr>
+<tr>
+<td><code>\bclass_eval\b</code></td>
+<td>Class-level eval</td>
+</tr>
+<tr>
+<td><code>\bmodule_eval\b</code></td>
+<td>Module-level eval</td>
+</tr>
+<tr>
+<td><code>\binstance_eval\b</code></td>
+<td>Instance-level eval</td>
+</tr>
+<tr>
+<td><code>\binstance_variable_set\b</code></td>
+<td>Direct ivar write</td>
+</tr>
+<tr>
+<td><code>\binstance_variable_get\b</code></td>
+<td>Direct ivar read</td>
+</tr>
+<tr>
+<td><code>\bdefine_method\b</code></td>
+<td>Dynamic method definition</td>
+</tr>
+<tr>
+<td><code>\bBinding\b</code></td>
+<td>Binding access</td>
+</tr>
+<tr>
+<td><code>\bBasicObject\b</code></td>
+<td>BasicObject escape hatch</td>
 </tr>
 <tr>
 <td><code>\bremove_method\b</code></td>

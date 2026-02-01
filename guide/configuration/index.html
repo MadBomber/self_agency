@@ -276,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../generating-methods/" class="md-tabs__link">
+        <a href="../how-to-use/" class="md-tabs__link">
           
   
   
@@ -640,6 +640,8 @@
       
         
       
+        
+      
     
     
     
@@ -685,6 +687,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -943,6 +973,17 @@
     <span class="md-ellipsis">
       
         Checking Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
       
     </span>
   </a>
@@ -1721,6 +1762,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-custom-timeouts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1842,6 +1894,18 @@
 <td><code>lib/self_agency/prompts</code></td>
 <td>Path to ERB prompt templates</td>
 </tr>
+<tr>
+<td><code>generation_retries</code></td>
+<td><code>Integer</code></td>
+<td><code>3</code></td>
+<td>Max retry attempts when validation or security checks fail</td>
+</tr>
+<tr>
+<td><code>logger</code></td>
+<td><code>Proc</code>, <code>Logger</code>, or <code>nil</code></td>
+<td><code>nil</code></td>
+<td>Logger for pipeline events (see <a href="#logging">Logging</a> below)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="configuration-is-mandatory">Configuration Is Mandatory<a class="headerlink" href="#configuration-is-mandatory" title="Permanent link">&para;</a></h2>
@@ -1873,23 +1937,39 @@
 <p><code>SelfAgency.ensure_configured!</code> raises if <code>configure</code> has not been called:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">ensure_configured!</span><span class="w">  </span><span class="c1"># raises or succeeds silently</span>
 </span></code></pre></div>
+<h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
+<p>Set <code>logger</code> to observe each stage of the pipeline. It accepts either a callable (receives <code>stage</code> and <code>message</code>) or a <code>Logger</code>-compatible object (uses <code>.debug</code>):</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Callable logger</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;[</span><span class="si">#{</span><span class="n">stage</span><span class="si">}</span><span class="s2">] </span><span class="si">#{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="c1"># ...</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">end</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Standard library Logger</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;logger&quot;</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Logger</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="vg">$stdout</span><span class="p">)</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="c1"># ...</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="k">end</span>
+</span></code></pre></div>
+<p>Logged stages: <code>:shape</code>, <code>:generate</code>, <code>:validate</code>, <code>:retry</code>, <code>:complete</code>.</p>
 <h2 id="example-custom-timeouts">Example: Custom Timeouts<a class="headerlink" href="#example-custom-timeouts" title="Permanent link">&para;</a></h2>
 <p>For complex method generation that takes longer:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">provider</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="ss">:ollama</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;qwen3-coder:30b&quot;</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">api_base</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;http://localhost:11434/v1&quot;</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">request_timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">max_retries</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">retry_interval</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">provider</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="ss">:ollama</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;qwen3-coder:30b&quot;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">api_base</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;http://localhost:11434/v1&quot;</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">request_timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">max_retries</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">retry_interval</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">end</span>
 </span></code></pre></div>
 <h2 id="example-openai">Example: OpenAI<a class="headerlink" href="#example-openai" title="Permanent link">&para;</a></h2>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:openai</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt-4o&quot;</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">api_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://api.openai.com/v1&quot;</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">provider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:openai</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">model</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;gpt-4o&quot;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">api_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://api.openai.com/v1&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">end</span>
 </span></code></pre></div>
 
 

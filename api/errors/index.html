@@ -274,7 +274,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide/generating-methods/" class="md-tabs__link">
+        <a href="../../guide/how-to-use/" class="md-tabs__link">
           
   
   
@@ -638,6 +638,8 @@
       
         
       
+        
+      
     
     
     
@@ -680,6 +682,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1842,29 +1872,78 @@
 </span></code></pre></div>
 <hr />
 <h2 id="selfagencygenerationerror"><code>SelfAgency::GenerationError</code><a class="headerlink" href="#selfagencygenerationerror" title="Permanent link">&para;</a></h2>
-<p>Raised when the LLM fails to produce output.</p>
+<p>Raised when the LLM fails to produce output or when an LLM communication failure occurs.</p>
+<p><strong>Attributes:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stage</code></td>
+<td><code>Symbol</code> or <code>nil</code></td>
+<td><code>:shape</code> or <code>:generate</code> -- which pipeline stage failed</td>
+</tr>
+<tr>
+<td><code>attempt</code></td>
+<td><code>Integer</code> or <code>nil</code></td>
+<td>The attempt number (during retry loop)</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Raised when:</strong></p>
 <ul>
 <li>The shape stage returns <code>nil</code> -- message: <code>"Prompt shaping failed (LLM returned nil)"</code></li>
 <li>The generate stage returns <code>nil</code> -- message: <code>"Code generation failed (LLM returned nil)"</code></li>
+<li>An LLM communication failure occurs -- message: <code>"LLM request failed (ExceptionClass: details)"</code></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>LLM communication failures (network errors, timeouts, provider API errors) are rescued internally by the generator. Any exception during the LLM call results in a <code>nil</code> return, which then triggers <code>GenerationError</code>. If generation consistently fails, verify your LLM provider is running and the configuration (provider, model, api_base) is correct.</p>
+<p>LLM communication failures (network errors, timeouts, provider API errors) are wrapped and re-raised as <code>GenerationError</code>. The original exception class and message are preserved in the error message. If generation consistently fails, verify your LLM provider is running and the configuration (provider, model, api_base) is correct.</p>
 </div>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">GenerationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LLM failed: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LLM failed at </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="si">}</span><span class="s2"> stage: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">end</span>
 </span></code></pre></div>
 <hr />
 <h2 id="selfagencyvalidationerror"><code>SelfAgency::ValidationError</code><a class="headerlink" href="#selfagencyvalidationerror" title="Permanent link">&para;</a></h2>
 <p>Raised when the generated code fails structural or syntactic validation.</p>
+<p><strong>Attributes:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generated_code</code></td>
+<td><code>String</code> or <code>nil</code></td>
+<td>The code that failed validation</td>
+</tr>
+<tr>
+<td><code>attempt</code></td>
+<td><code>Integer</code> or <code>nil</code></td>
+<td>The attempt number (during retry loop)</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Raised when:</strong></p>
 <ul>
 <li>Generated code is empty after sanitization</li>
 <li>Generated code does not contain a <code>def...end</code> structure</li>
 <li>Generated code has a syntax error (<code>RubyVM::InstructionSequence.compile</code> fails)</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>During automatic retries, <code>ValidationError</code> is only raised to the caller after all <code>generation_retries</code> attempts are exhausted. The <code>attempt</code> attribute indicates which attempt produced the final failure.</p>
+</div>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Empty code</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">widget</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="ss">:self_agency_validate!</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">#=&gt; SelfAgency::ValidationError: code is empty</span>
@@ -1880,25 +1959,48 @@
 <hr />
 <h2 id="selfagencysecurityerror"><code>SelfAgency::SecurityError</code><a class="headerlink" href="#selfagencysecurityerror" title="Permanent link">&para;</a></h2>
 <p>Raised when the generated code contains a dangerous pattern.</p>
+<p><strong>Attributes:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>matched_pattern</code></td>
+<td><code>String</code> or <code>nil</code></td>
+<td>The specific pattern text that was matched</td>
+</tr>
+<tr>
+<td><code>generated_code</code></td>
+<td><code>String</code> or <code>nil</code></td>
+<td>The code that triggered the error</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Raised when:</strong></p>
 <ul>
 <li>The code matches <code>SelfAgency::DANGEROUS_PATTERNS</code> (static analysis)</li>
 </ul>
+<p>The error message includes the specific matched pattern, e.g., <code>"dangerous pattern detected: system"</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This is <code>SelfAgency::SecurityError</code>, distinct from Ruby's built-in <code>::SecurityError</code>. The runtime sandbox raises <code>::SecurityError</code> (the Ruby built-in), while the static validator raises <code>SelfAgency::SecurityError</code>.</p>
 </div>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># System call</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">widget</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="ss">:self_agency_validate!</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;def hack</span><span class="se">\n</span><span class="s2">  system(&#39;ls&#39;)</span><span class="se">\n</span><span class="s2">end&quot;</span><span class="p">)</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1">#=&gt; SelfAgency::SecurityError: dangerous pattern detected</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1">#=&gt; SelfAgency::SecurityError: dangerous pattern detected: system</span>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># File access</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">widget</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="ss">:self_agency_validate!</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;def hack</span><span class="se">\n</span><span class="s2">  File.read(&#39;/etc/passwd&#39;)</span><span class="se">\n</span><span class="s2">end&quot;</span><span class="p">)</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1">#=&gt; SelfAgency::SecurityError: dangerous pattern detected</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1">#=&gt; SelfAgency::SecurityError: dangerous pattern detected: File.</span>
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># Eval</span>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">widget</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="ss">:self_agency_validate!</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;def hack</span><span class="se">\n</span><span class="s2">  eval(&#39;1+1&#39;)</span><span class="se">\n</span><span class="s2">end&quot;</span><span class="p">)</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1">#=&gt; SelfAgency::SecurityError: dangerous pattern detected</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1">#=&gt; SelfAgency::SecurityError: dangerous pattern detected: eval</span>
 </span></code></pre></div>
 <hr />
 <h2 id="error-handling-patterns">Error Handling Patterns<a class="headerlink" href="#error-handling-patterns" title="Permanent link">&para;</a></h2>
@@ -1912,13 +2014,14 @@
 <h3 id="catch-specific-errors">Catch Specific Errors<a class="headerlink" href="#catch-specific-errors" title="Permanent link">&para;</a></h3>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">begin</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">obj</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;a method description&quot;</span><span class="p">)</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">GenerationError</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LLM did not return a response&quot;</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">GenerationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LLM failed at </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">stage</span><span class="si">}</span><span class="s2"> stage (attempt </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">attempt</span><span class="si">}</span><span class="s2">): </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">ValidationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Code validation failed: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">SecurityError</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Dangerous code detected&quot;</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="k">end</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Validation failed on attempt </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">attempt</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Code was: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">generated_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">e</span><span class="o">.</span><span class="n">generated_code</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">SecurityError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Security: matched &#39;</span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">matched_pattern</span><span class="si">}</span><span class="s2">&#39; in generated code&quot;</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">end</span>
 </span></code></pre></div>
 
 

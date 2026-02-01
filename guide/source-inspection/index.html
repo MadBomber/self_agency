@@ -276,7 +276,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../generating-methods/" class="md-tabs__link">
+        <a href="../how-to-use/" class="md-tabs__link">
           
   
   
@@ -640,6 +640,8 @@
       
         
       
+        
+      
     
     
     
@@ -685,6 +687,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to Use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -848,6 +878,17 @@
     <span class="md-ellipsis">
       
         Unknown Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version History
       
     </span>
   </a>
@@ -1688,6 +1729,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#version-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version History
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1781,6 +1833,22 @@
 <p>If a method doesn't exist or its source is unavailable, <code>_source_for</code> returns <code>nil</code>:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">helper</span><span class="o">.</span><span class="n">_source_for</span><span class="p">(</span><span class="ss">:nonexistent</span><span class="p">)</span><span class="w">  </span><span class="c1">#=&gt; nil</span>
 </span></code></pre></div>
+<h2 id="version-history">Version History<a class="headerlink" href="#version-history" title="Permanent link">&para;</a></h2>
+<p>When a method is regenerated (e.g., with a refined description), SelfAgency tracks each version. Use <code>_source_versions_for</code> at the class level to retrieve the history:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">helper</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;an instance method named &#39;square&#39; that accepts n and returns n * n&quot;</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">helper</span><span class="o">.</span><span class="n">_</span><span class="p">(</span><span class="s2">&quot;an instance method named &#39;square&#39; that accepts n, raises ArgumentError if n &lt; 0, and returns n * n&quot;</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">versions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MathHelper</span><span class="o">.</span><span class="n">_source_versions_for</span><span class="p">(</span><span class="ss">:square</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">versions</span><span class="o">.</span><span class="n">size</span><span class="w">  </span><span class="c1">#=&gt; 2</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">versions</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">v</span><span class="o">|</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">v</span><span class="o">[</span><span class="ss">:at</span><span class="o">]</span><span class="si">}</span><span class="s2"> — </span><span class="si">#{</span><span class="n">v</span><span class="o">[</span><span class="ss">:description</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="n">v</span><span class="o">[</span><span class="ss">:code</span><span class="o">]</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="nb">puts</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="k">end</span>
+</span></code></pre></div>
+<p>Each version entry is a Hash with keys <code>:code</code>, <code>:description</code>, <code>:instance_id</code>, and <code>:at</code>.</p>
+<p>Returns an empty array if no versions exist for the method.</p>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <p><code>_source_for</code> checks two sources in order:</p>
 <ol>
