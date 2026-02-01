@@ -7,14 +7,14 @@ class Atlas < Robot
   def generate_weather_data
     weather_data = []
     (0..23).each do |hour|
-      temperature = 20.0 + 8.0 * Math.sin((hour - 6) * Math::PI / 12.0)
-      humidity = 60.0 + 20.0 * Math.cos((hour - 14) * Math::PI / 12.0)
-      wind_speed = 10.0 + 5.0 * Math.sin((hour * 7) * Math::PI / 24.0)
+      temperature = 20.0 + 8.0 * Math.sin(((hour - 6) * Math::PI) / 12.0)
+      humidity = 60.0 + 20.0 * Math.cos(((hour - 14) * Math::PI) / 12.0)
+      wind_speed = 10.0 + 5.0 * Math.sin(((hour * 7) * Math::PI) / 24.0)
       weather_data << {
-        :hour => hour,
-        :temperature => temperature,
-        :humidity => humidity,
-        :wind_speed => wind_speed
+        hour: hour,
+        temperature: temperature,
+        humidity: humidity,
+        wind_speed: wind_speed
       }
     end
     weather_data
@@ -22,10 +22,10 @@ class Atlas < Robot
 
   # Method named 'summarize_raw_data' that takes one parameter (data), an Array of Hashes as described above. It returns a Hash with: :readings_count => data.size, :raw_data => data, :source => "Atlas"
   def summarize_raw_data(data)
-    result = {}
-    result[:readings_count] = data.size
-    result[:raw_data] = data
-    result[:source] = "Atlas"
-    result
+    {
+      readings_count: data.size,
+      raw_data: data,
+      source: "Atlas"
+    }
   end
 end

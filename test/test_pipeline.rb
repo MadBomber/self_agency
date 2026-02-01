@@ -67,7 +67,8 @@ class TestPipeline < Minitest::Test
     assert_equal [:self_agency_pipeline_add], method_names
     assert_equal 5, obj.self_agency_pipeline_add(2, 3)
   ensure
-    SampleClass.undef_method(:self_agency_pipeline_add) if SampleClass.method_defined?(:self_agency_pipeline_add)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_pipeline_add) if sandbox&.method_defined?(:self_agency_pipeline_add)
   end
 
   def test_underscore_full_pipeline_singleton_scope
@@ -110,9 +111,8 @@ class TestPipeline < Minitest::Test
     assert_equal [:self_agency_pipeline_class_hello], method_names
     assert_equal "world", SampleClass.self_agency_pipeline_class_hello
   ensure
-    if SampleClass.singleton_class.method_defined?(:self_agency_pipeline_class_hello)
-      SampleClass.singleton_class.undef_method(:self_agency_pipeline_class_hello)
-    end
+    sandbox = SampleClass.instance_variable_get(:@self_agency_class_sandbox)
+    sandbox.remove_method(:self_agency_pipeline_class_hello) if sandbox&.method_defined?(:self_agency_pipeline_class_hello)
   end
 
   # --------------------------------------------------------------------------
@@ -137,7 +137,8 @@ class TestPipeline < Minitest::Test
     assert_equal [:self_agency_alias_add], method_names
     assert_equal 5, obj.self_agency_alias_add(2, 3)
   ensure
-    SampleClass.undef_method(:self_agency_alias_add) if SampleClass.method_defined?(:self_agency_alias_add)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_alias_add) if sandbox&.method_defined?(:self_agency_alias_add)
   end
 
   # --------------------------------------------------------------------------
@@ -167,7 +168,8 @@ class TestPipeline < Minitest::Test
     assert_equal 5, obj.self_agency_retry_ok(2, 3)
     assert_equal 2, call_count
   ensure
-    SampleClass.undef_method(:self_agency_retry_ok) if SampleClass.method_defined?(:self_agency_retry_ok)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_retry_ok) if sandbox&.method_defined?(:self_agency_retry_ok)
   end
 
   def test_retry_raises_after_exhausting_retries
@@ -214,7 +216,8 @@ class TestPipeline < Minitest::Test
     assert_equal [:self_agency_retry_cfg], method_names
     assert_equal 3, call_count
   ensure
-    SampleClass.undef_method(:self_agency_retry_cfg) if SampleClass.method_defined?(:self_agency_retry_cfg)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_retry_cfg) if sandbox&.method_defined?(:self_agency_retry_cfg)
   end
 
   def test_retry_passes_error_feedback_to_template
@@ -244,7 +247,8 @@ class TestPipeline < Minitest::Test
     assert_includes captured_vars[:previous_error], "syntax error"
     assert_equal bad_code, captured_vars[:previous_code]
   ensure
-    SampleClass.undef_method(:self_agency_retry_fb) if SampleClass.method_defined?(:self_agency_retry_fb)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_retry_fb) if sandbox&.method_defined?(:self_agency_retry_fb)
   end
 
   # --------------------------------------------------------------------------
@@ -279,7 +283,8 @@ class TestPipeline < Minitest::Test
     assert_equal :instance, entry[:scope]
     assert_equal generated_code, entry[:code]
   ensure
-    HookTracker.undef_method(:self_agency_hook_test) if HookTracker.method_defined?(:self_agency_hook_test)
+    sandbox = HookTracker.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_hook_test) if sandbox&.method_defined?(:self_agency_hook_test)
   end
 
   # --------------------------------------------------------------------------
@@ -305,8 +310,9 @@ class TestPipeline < Minitest::Test
     assert_equal 1, obj.self_agency_multi_a
     assert_equal 2, obj.self_agency_multi_b
   ensure
-    SampleClass.undef_method(:self_agency_multi_a) if SampleClass.method_defined?(:self_agency_multi_a)
-    SampleClass.undef_method(:self_agency_multi_b) if SampleClass.method_defined?(:self_agency_multi_b)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_multi_a) if sandbox&.method_defined?(:self_agency_multi_a)
+    sandbox.remove_method(:self_agency_multi_b) if sandbox&.method_defined?(:self_agency_multi_b)
   end
 
   def test_underscore_stores_individual_source_for_each_method
@@ -329,8 +335,9 @@ class TestPipeline < Minitest::Test
     assert_includes obj._source_for(:self_agency_ind_b), "def self_agency_ind_b"
     refute_includes obj._source_for(:self_agency_ind_b), "def self_agency_ind_a"
   ensure
-    SampleClass.undef_method(:self_agency_ind_a) if SampleClass.method_defined?(:self_agency_ind_a)
-    SampleClass.undef_method(:self_agency_ind_b) if SampleClass.method_defined?(:self_agency_ind_b)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_ind_a) if sandbox&.method_defined?(:self_agency_ind_a)
+    sandbox.remove_method(:self_agency_ind_b) if sandbox&.method_defined?(:self_agency_ind_b)
   end
 
   def test_underscore_calls_hook_for_each_method
@@ -352,7 +359,8 @@ class TestPipeline < Minitest::Test
     assert_equal :self_agency_hook_a, obj.generated_log[0][:method_name]
     assert_equal :self_agency_hook_b, obj.generated_log[1][:method_name]
   ensure
-    HookTracker.undef_method(:self_agency_hook_a) if HookTracker.method_defined?(:self_agency_hook_a)
-    HookTracker.undef_method(:self_agency_hook_b) if HookTracker.method_defined?(:self_agency_hook_b)
+    sandbox = HookTracker.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_hook_a) if sandbox&.method_defined?(:self_agency_hook_a)
+    sandbox.remove_method(:self_agency_hook_b) if sandbox&.method_defined?(:self_agency_hook_b)
   end
 end

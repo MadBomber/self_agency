@@ -34,7 +34,8 @@ class TestSourceFor < Minitest::Test
     result = obj._source_for(:self_agency_src_test)
     assert_equal "# add two numbers\n#{generated_code}", result
   ensure
-    SampleClass.undef_method(:self_agency_src_test) if SampleClass.method_defined?(:self_agency_src_test)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_src_test) if sandbox&.method_defined?(:self_agency_src_test)
   end
 
   def test_source_accepts_string_argument
@@ -55,7 +56,8 @@ class TestSourceFor < Minitest::Test
     result = obj._source_for("self_agency_src_str")
     assert_equal "# double a number\n#{generated_code}", result
   ensure
-    SampleClass.undef_method(:self_agency_src_str) if SampleClass.method_defined?(:self_agency_src_str)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_src_str) if sandbox&.method_defined?(:self_agency_src_str)
   end
 
   def test_source_tracks_multiple_methods
@@ -81,8 +83,9 @@ class TestSourceFor < Minitest::Test
     assert_equal "# first method\n#{code_a}", obj._source_for(:self_agency_src_a)
     assert_equal "# second method\n#{code_b}", obj._source_for(:self_agency_src_b)
   ensure
-    SampleClass.undef_method(:self_agency_src_a) if SampleClass.method_defined?(:self_agency_src_a)
-    SampleClass.undef_method(:self_agency_src_b) if SampleClass.method_defined?(:self_agency_src_b)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_src_a) if sandbox&.method_defined?(:self_agency_src_a)
+    sandbox.remove_method(:self_agency_src_b) if sandbox&.method_defined?(:self_agency_src_b)
   end
 
   def test_source_includes_multiline_description_as_comment
@@ -103,7 +106,8 @@ class TestSourceFor < Minitest::Test
     expected = "# add two numbers\n# and return the result\n#{generated_code}"
     assert_equal expected, obj._source_for(:self_agency_src_multi)
   ensure
-    SampleClass.undef_method(:self_agency_src_multi) if SampleClass.method_defined?(:self_agency_src_multi)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_src_multi) if sandbox&.method_defined?(:self_agency_src_multi)
   end
 
   # --------------------------------------------------------------------------
@@ -131,7 +135,8 @@ class TestSourceFor < Minitest::Test
     obj._("a method")
     assert_equal "# a method\n#{generated_code}", SampleClass._source_for(:self_agency_cls_src_test)
   ensure
-    SampleClass.undef_method(:self_agency_cls_src_test) if SampleClass.method_defined?(:self_agency_cls_src_test)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_cls_src_test) if sandbox&.method_defined?(:self_agency_cls_src_test)
   end
 
   def test_class_source_for_accepts_string_argument
@@ -151,7 +156,8 @@ class TestSourceFor < Minitest::Test
     obj._("a method")
     assert_equal "# a method\n#{generated_code}", SampleClass._source_for("self_agency_cls_str")
   ensure
-    SampleClass.undef_method(:self_agency_cls_str) if SampleClass.method_defined?(:self_agency_cls_str)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_cls_str) if sandbox&.method_defined?(:self_agency_cls_str)
   end
 
   # --------------------------------------------------------------------------
@@ -244,7 +250,8 @@ class TestSourceFor < Minitest::Test
     # _source_for still returns the most recent
     assert_equal "# version two\n#{code_v2}", SampleClass._source_for(:self_agency_ver_test)
   ensure
-    SampleClass.undef_method(:self_agency_ver_test) if SampleClass.method_defined?(:self_agency_ver_test)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_ver_test) if sandbox&.method_defined?(:self_agency_ver_test)
   end
 
   def test_source_versions_for_accepts_string_argument
@@ -265,6 +272,7 @@ class TestSourceFor < Minitest::Test
     assert_equal 1, versions.length
     assert_equal generated_code, versions[0][:code]
   ensure
-    SampleClass.undef_method(:self_agency_ver_str) if SampleClass.method_defined?(:self_agency_ver_str)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_ver_str) if sandbox&.method_defined?(:self_agency_ver_str)
   end
 end

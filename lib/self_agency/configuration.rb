@@ -4,6 +4,8 @@ require "ruby_llm"
 require "ruby_llm/template"
 
 module SelfAgency
+  CONFIG_MUTEX = Mutex.new
+
   class Configuration
     attr_accessor :provider, :model, :api_base,
                   :request_timeout, :max_retries, :retry_interval,
@@ -17,7 +19,7 @@ module SelfAgency
       @max_retries        = 1
       @retry_interval     = 0.5
       @template_directory = File.join(__dir__, "prompts")
-      @generation_retries = 2
+      @generation_retries = 3
     end
   end
 
@@ -27,14 +29,18 @@ module SelfAgency
     end
 
     def configure
-      yield(configuration)
-      apply_ruby_llm_config!
-      configuration
+      CONFIG_MUTEX.synchronize do
+        yield(configuration)
+        apply_ruby_llm_config!
+        configuration
+      end
     end
 
     def reset!
-      @configuration = Configuration.new
-      @configured = false
+      CONFIG_MUTEX.synchronize do
+        @configuration = Configuration.new
+        @configured = false
+      end
     end
 
     def ensure_configured!
@@ -43,6 +49,7 @@ module SelfAgency
 
     def included(base)
       base.extend(ClassMethods)
+      base.instance_variable_set(:@self_agency_mutex, Mutex.new)
     end
 
     private

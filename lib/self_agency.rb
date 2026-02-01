@@ -65,6 +65,31 @@ module SelfAgency
       @self_agency_class_source_versions ||= {}
     end
 
+    # Return the per-class mutex used to serialize the _() pipeline.
+    def self_agency_mutex
+      @self_agency_mutex
+    end
+
+    # Return the cached sandbox module for the given scope, creating and
+    # prepending it on first access.  Reusing a single module per scope
+    # prevents anonymous-module accumulation in the ancestor chain.
+    def self_agency_sandbox_module(scope)
+      case scope
+      when :instance
+        @self_agency_instance_sandbox ||= begin
+          mod = Module.new { include SelfAgency::Sandbox }
+          prepend(mod)
+          mod
+        end
+      when :class
+        @self_agency_class_sandbox ||= begin
+          mod = Module.new { include SelfAgency::Sandbox }
+          singleton_class.prepend(mod)
+          mod
+        end
+      end
+    end
+
     private
 
     def self_agency_comment_header(description)
@@ -92,52 +117,54 @@ module SelfAgency
   # @raise [ValidationError]  if the generated code fails validation
   # @raise [SecurityError]    if the generated code contains dangerous patterns
   def _(description, scope: :instance)
-    SelfAgency.ensure_configured!
+    self.class.self_agency_mutex.synchronize do
+      SelfAgency.ensure_configured!
 
-    shaped = self_agency_shape(description, scope)
-    raise GenerationError, "Prompt shaping failed (LLM returned nil)" unless shaped
+      shaped = self_agency_shape(description, scope)
+      raise GenerationError, "Prompt shaping failed (LLM returned nil)" unless shaped
 
-    max_attempts = SelfAgency.configuration.generation_retries
-    last_error   = nil
-    gen_vars     = self_agency_generation_vars.merge(shaped_spec: shaped, previous_error: nil, previous_code: nil)
-    code         = nil
+      max_attempts = SelfAgency.configuration.generation_retries
+      last_error   = nil
+      gen_vars     = self_agency_generation_vars.merge(shaped_spec: shaped, previous_error: nil, previous_code: nil)
+      code         = nil
 
-    max_attempts.times do
-      raw = self_agency_ask_with_template(:generate, **gen_vars)
-      raise GenerationError, "Code generation failed (LLM returned nil)" unless raw
+      max_attempts.times do
+        raw = self_agency_ask_with_template(:generate, **gen_vars)
+        raise GenerationError, "Code generation failed (LLM returned nil)" unless raw
 
-      code = self_agency_sanitize(raw)
-      begin
-        self_agency_validate!(code)
-        last_error = nil
-        break
-      rescue ValidationError, SecurityError => e
-        last_error = e
-        gen_vars = gen_vars.merge(previous_error: e.message, previous_code: code)
+        code = self_agency_sanitize(raw)
+        begin
+          self_agency_validate!(code)
+          last_error = nil
+          break
+        rescue ValidationError, SecurityError => e
+          last_error = e
+          gen_vars = gen_vars.merge(previous_error: e.message, previous_code: code)
+        end
       end
+
+      raise last_error if last_error
+
+      self_agency_eval(code, scope)
+
+      method_blocks = self_agency_split_methods(code)
+      method_names = method_blocks.map do |name, block|
+        self_agency_sources[name] = block
+        self_agency_descriptions[name] = description
+        self.class.self_agency_class_sources[name] = block
+        self.class.self_agency_class_descriptions[name] = description
+        (self.class.self_agency_class_source_versions[name] ||= []) << {
+          code: block,
+          description: description,
+          instance_id: object_id,
+          at: Time.now
+        }
+        on_method_generated(name, scope, block)
+        name
+      end
+
+      method_names
     end
-
-    raise last_error if last_error
-
-    self_agency_eval(code, scope)
-
-    method_blocks = self_agency_split_methods(code)
-    method_names = method_blocks.map do |name, block|
-      self_agency_sources[name] = block
-      self_agency_descriptions[name] = description
-      self.class.self_agency_class_sources[name] = block
-      self.class.self_agency_class_descriptions[name] = description
-      (self.class.self_agency_class_source_versions[name] ||= []) << {
-        code: block,
-        description: description,
-        instance_id: object_id,
-        at: Time.now
-      }
-      on_method_generated(name, scope, block)
-      name
-    end
-
-    method_names
   end
 
   alias_method :self_agency_generate, :_
@@ -228,23 +255,28 @@ module SelfAgency
     end
   end
 
-  # Evaluate the code inside a sandboxed anonymous module.
+  # Evaluate the code inside the cached sandboxed module for this scope.
+  # Reuses a single module per scope to avoid MRO accumulation.
   def self_agency_eval(code, scope)
-    sandbox_mod = Module.new { include SelfAgency::Sandbox }
-
     case scope
     when :instance
-      sandbox_mod.module_eval(code)
-      self.class.prepend(sandbox_mod)
+      self.class.self_agency_sandbox_module(:instance).module_eval(code)
     when :singleton
-      sandbox_mod.module_eval(code)
-      singleton_class.prepend(sandbox_mod)
+      self_agency_singleton_sandbox_module.module_eval(code)
     when :class
       class_code = code.sub(/\bdef\s+self\./, "def ")
-      sandbox_mod.module_eval(class_code)
-      self.class.singleton_class.prepend(sandbox_mod)
+      self.class.self_agency_sandbox_module(:class).module_eval(class_code)
     else
       raise ValidationError, "unknown scope: #{scope.inspect}"
+    end
+  end
+
+  # Return the cached singleton-scope sandbox module for this instance.
+  def self_agency_singleton_sandbox_module
+    @self_agency_singleton_sandbox ||= begin
+      mod = Module.new { include SelfAgency::Sandbox }
+      singleton_class.prepend(mod)
+      mod
     end
   end
 end

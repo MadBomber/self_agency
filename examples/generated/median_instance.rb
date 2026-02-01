@@ -5,11 +5,11 @@ def median
   length = sorted_data.length
   
   if length.odd?
-    middle_index = (length - 1) / 2
+    middle_index = length / 2
     sorted_data[middle_index].to_f
   else
-    upper_middle_index = length / 2
-    lower_middle_index = upper_middle_index - 1
-    (sorted_data[upper_middle_index] + sorted_data[lower_middle_index]) / 2.0
+    right_middle_index = length / 2
+    left_middle_index = right_middle_index - 1
+    (sorted_data[left_middle_index] + sorted_data[right_middle_index]).to_f / 2.0
   end
 end

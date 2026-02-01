@@ -76,8 +76,8 @@ puts
 puts "--- Generating a singleton method ---"
 calc._(
   "an instance method named 'report' that returns a multi-line string " \
-  "summarizing the data count, mean, median, and standard_deviation " \
-  "by calling the existing instance methods",
+  "with the data count (data.length), mean (call self.mean), " \
+  "median (call self.median), and standard_deviation (call self.standard_deviation)",
   scope: :singleton
 )
 puts

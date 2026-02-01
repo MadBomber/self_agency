@@ -78,7 +78,8 @@ class TestSave < Minitest::Test
       assert_includes content, "def self_agency_save_test"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_test) if SampleClass.method_defined?(:self_agency_save_test)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_test) if sandbox&.method_defined?(:self_agency_save_test)
   end
 
   def test_save_returns_default_path_from_as
@@ -104,7 +105,8 @@ class TestSave < Minitest::Test
       end
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_path) if SampleClass.method_defined?(:self_agency_save_path)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_path) if sandbox&.method_defined?(:self_agency_save_path)
   end
 
   def test_save_uses_explicit_path
@@ -129,7 +131,8 @@ class TestSave < Minitest::Test
       assert File.exist?(custom_path)
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_explicit) if SampleClass.method_defined?(:self_agency_save_explicit)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_explicit) if sandbox&.method_defined?(:self_agency_save_explicit)
   end
 
   def test_save_includes_frozen_string_literal
@@ -153,7 +156,8 @@ class TestSave < Minitest::Test
       assert_includes content, "# frozen_string_literal: true"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_frozen) if SampleClass.method_defined?(:self_agency_save_frozen)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_frozen) if sandbox&.method_defined?(:self_agency_save_frozen)
   end
 
   def test_save_includes_require_relative
@@ -177,7 +181,8 @@ class TestSave < Minitest::Test
       assert_match(/\Arequire_relative/, content.lines.find { |l| l.include?("require_relative") }.strip)
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_req) if SampleClass.method_defined?(:self_agency_save_req)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_req) if sandbox&.method_defined?(:self_agency_save_req)
   end
 
   def test_save_includes_description_as_comment
@@ -201,7 +206,8 @@ class TestSave < Minitest::Test
       assert_includes content, "  # compute the answer"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_desc) if SampleClass.method_defined?(:self_agency_save_desc)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_desc) if sandbox&.method_defined?(:self_agency_save_desc)
   end
 
   def test_save_indents_method_body
@@ -225,7 +231,8 @@ class TestSave < Minitest::Test
       assert_includes content, "  def self_agency_save_indent(a, b)\n    a + b\n  end"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_indent) if SampleClass.method_defined?(:self_agency_save_indent)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_indent) if sandbox&.method_defined?(:self_agency_save_indent)
   end
 
   def test_save_multiple_methods
@@ -250,8 +257,9 @@ class TestSave < Minitest::Test
       assert_includes content, "  def self_agency_save_m2"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_m1) if SampleClass.method_defined?(:self_agency_save_m1)
-    SampleClass.undef_method(:self_agency_save_m2) if SampleClass.method_defined?(:self_agency_save_m2)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_m1) if sandbox&.method_defined?(:self_agency_save_m1)
+    sandbox.remove_method(:self_agency_save_m2) if sandbox&.method_defined?(:self_agency_save_m2)
   end
 
   def test_save_accepts_string_as_parameter
@@ -275,7 +283,8 @@ class TestSave < Minitest::Test
       assert_includes content, "class Collector < SampleClass"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_str) if SampleClass.method_defined?(:self_agency_save_str)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_str) if sandbox&.method_defined?(:self_agency_save_str)
   end
 
   def test_save_converts_snake_case_to_camel_case_in_class_name
@@ -299,6 +308,7 @@ class TestSave < Minitest::Test
       assert_includes content, "class WeatherAnalyst < SampleClass"
     end
   ensure
-    SampleClass.undef_method(:self_agency_save_camel) if SampleClass.method_defined?(:self_agency_save_camel)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_save_camel) if sandbox&.method_defined?(:self_agency_save_camel)
   end
 end

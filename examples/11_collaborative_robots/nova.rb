@@ -9,13 +9,19 @@ class Nova < Robot
     readings_count = data[:readings_count]
     source = data[:source]
     
-    temps = raw_data.map { |reading| reading[:temperature] }
-    humidities = raw_data.map { |reading| reading[:humidity] }
-    wind_speeds = raw_data.map { |reading| reading[:wind_speed] }
+    temperatures = []
+    humidities = []
+    wind_speeds = []
     
-    avg_temp = (temps.sum / temps.length.to_f).round(1)
-    min_temp = temps.min.round(1)
-    max_temp = temps.max.round(1)
+    raw_data.each do |reading|
+      temperatures << reading[:temperature]
+      humidities << reading[:humidity]
+      wind_speeds << reading[:wind_speed]
+    end
+    
+    avg_temp = (temperatures.sum / temperatures.length.to_f).round(1)
+    min_temp = temperatures.min.round(1)
+    max_temp = temperatures.max.round(1)
     avg_humidity = (humidities.sum / humidities.length.to_f).round(1)
     avg_wind = (wind_speeds.sum / wind_speeds.length.to_f).round(1)
     
@@ -30,15 +36,15 @@ class Nova < Robot
     }
   end
 
-  # Classify weather conditions based on statistics. Takes one parameter (stats), a Hash with keys :avg_temp, :avg_humidity, :avg_wind (all Floats). Determine classifications: - temperature_class: "cold" if avg_temp < 15, "mild" if < 25, else "hot" - humidity_class: "dry" if avg_humidity < 40, "comfortable" if < 70, else "humid" - wind_class: "calm" if avg_wind < 8, "breezy" if < 15, else "windy" Return stats.merge with the three new keys (:temperature_class, :humidity_class, :wind_class) added, preserving all existing keys.
+  # Classify weather conditions based on statistics. Takes one parameter (stats), a Hash with keys :avg_temp, :avg_humidity, :avg_wind (all Floats). Determine classifications: - temperature_class: "cold" if avg_temp < 15, "mild" if < 25, else "hot" - humidity_class: "dry" if avg_humidity < 40, "comfortable" if < 70, else "humid" - wind_class: "calm" if avg_wind < 8, "breezy" if < 15, else "windy". Return stats.merge with the three new keys (:temperature_class, :humidity_class, :wind_class) added, preserving all existing keys.
   def classify_weather_conditions(stats)
     temperature_class = if stats[:avg_temp] < 15.0
-                          "cold"
-                        elsif stats[:avg_temp] < 25.0
-                          "mild"
-                        else
-                          "hot"
-                        end
+                         "cold"
+                       elsif stats[:avg_temp] < 25.0
+                         "mild"
+                       else
+                         "hot"
+                       end
 
     humidity_class = if stats[:avg_humidity] < 40.0
                        "dry"
@@ -56,6 +62,10 @@ class Nova < Robot
                    "windy"
                  end
 
-    stats.merge(:temperature_class => temperature_class, :humidity_class => humidity_class, :wind_class => wind_class)
+    stats.merge(
+      temperature_class: temperature_class,
+      humidity_class: humidity_class,
+      wind_class: wind_class
+    )
   end
 end

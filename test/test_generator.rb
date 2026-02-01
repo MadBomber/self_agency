@@ -138,7 +138,8 @@ class TestGenerator < Minitest::Test
     other = SampleClass.new
     assert_equal 3, other.self_agency_test_add(1, 2)
   ensure
-    SampleClass.undef_method(:self_agency_test_add) if SampleClass.method_defined?(:self_agency_test_add)
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:self_agency_test_add) if sandbox&.method_defined?(:self_agency_test_add)
   end
 
   def test_eval_singleton_scope_defines_singleton_method
@@ -157,9 +158,8 @@ class TestGenerator < Minitest::Test
     obj.send(:self_agency_eval, code, :class)
     assert_equal "world", SampleClass.self_agency_test_class_hello
   ensure
-    if SampleClass.singleton_class.method_defined?(:self_agency_test_class_hello)
-      SampleClass.singleton_class.undef_method(:self_agency_test_class_hello)
-    end
+    sandbox = SampleClass.instance_variable_get(:@self_agency_class_sandbox)
+    sandbox.remove_method(:self_agency_test_class_hello) if sandbox&.method_defined?(:self_agency_test_class_hello)
   end
 
   def test_eval_unknown_scope_raises_validation_error
@@ -168,5 +168,51 @@ class TestGenerator < Minitest::Test
     assert_raises(SelfAgency::ValidationError) do
       obj.send(:self_agency_eval, code, :unknown)
     end
+  end
+
+  # --------------------------------------------------------------------------
+  # Module reuse — only one sandbox module per scope in the ancestor chain
+  # --------------------------------------------------------------------------
+
+  def test_eval_instance_scope_reuses_sandbox_module
+    obj = SampleClass.new
+    obj.send(:self_agency_eval, "def sa_reuse_a\n  1\nend", :instance)
+    obj.send(:self_agency_eval, "def sa_reuse_b\n  2\nend", :instance)
+
+    sandbox_modules = SampleClass.ancestors.select do |mod|
+      mod.is_a?(Module) && !mod.is_a?(Class) && mod.included_modules.include?(SelfAgency::Sandbox)
+    end
+    assert_equal 1, sandbox_modules.length, "expected exactly one instance sandbox module in ancestors"
+  ensure
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:sa_reuse_a) if sandbox&.method_defined?(:sa_reuse_a)
+    sandbox.remove_method(:sa_reuse_b) if sandbox&.method_defined?(:sa_reuse_b)
+  end
+
+  def test_eval_redefine_same_method_takes_latest_body
+    obj = SampleClass.new
+    obj.send(:self_agency_eval, "def sa_redef\n  'first'\nend", :instance)
+    assert_equal "first", SampleClass.new.sa_redef
+
+    obj.send(:self_agency_eval, "def sa_redef\n  'second'\nend", :instance)
+    assert_equal "second", SampleClass.new.sa_redef
+  ensure
+    sandbox = SampleClass.instance_variable_get(:@self_agency_instance_sandbox)
+    sandbox.remove_method(:sa_redef) if sandbox&.method_defined?(:sa_redef)
+  end
+
+  def test_singleton_sandbox_modules_are_per_instance
+    a = SampleClass.new
+    b = SampleClass.new
+
+    a.send(:self_agency_eval, "def sa_sing\n  'a'\nend", :singleton)
+    b.send(:self_agency_eval, "def sa_sing\n  'b'\nend", :singleton)
+
+    assert_equal "a", a.sa_sing
+    assert_equal "b", b.sa_sing
+
+    sandbox_a = a.instance_variable_get(:@self_agency_singleton_sandbox)
+    sandbox_b = b.instance_variable_get(:@self_agency_singleton_sandbox)
+    refute_same sandbox_a, sandbox_b, "each instance should have its own singleton sandbox module"
   end
 end
