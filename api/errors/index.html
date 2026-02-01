@@ -1845,9 +1845,13 @@
 <p>Raised when the LLM fails to produce output.</p>
 <p><strong>Raised when:</strong></p>
 <ul>
-<li>The shape stage returns <code>nil</code></li>
-<li>The generate stage returns <code>nil</code></li>
+<li>The shape stage returns <code>nil</code> -- message: <code>"Prompt shaping failed (LLM returned nil)"</code></li>
+<li>The generate stage returns <code>nil</code> -- message: <code>"Code generation failed (LLM returned nil)"</code></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LLM communication failures (network errors, timeouts, provider API errors) are rescued internally by the generator. Any exception during the LLM call results in a <code>nil</code> return, which then triggers <code>GenerationError</code>. If generation consistently fails, verify your LLM provider is running and the configuration (provider, model, api_base) is correct.</p>
+</div>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SelfAgency</span><span class="o">::</span><span class="no">GenerationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LLM failed: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">end</span>

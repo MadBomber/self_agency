@@ -1858,7 +1858,7 @@
 <h2 id="applying-configuration">Applying Configuration<a class="headerlink" href="#applying-configuration" title="Permanent link">&para;</a></h2>
 <p><code>SelfAgency.configure</code> delegates to <code>RubyLLM.configure</code> and <code>RubyLLM::Template.configure</code> under the hood:</p>
 <ul>
-<li><code>provider</code> + <code>api_base</code> set the appropriate <code>*_api_base</code> on RubyLLM</li>
+<li><code>provider</code> + <code>api_base</code> set the provider-specific API base on RubyLLM. The <code>api_base</code> value is assigned to the RubyLLM config key <code>&lt;provider&gt;_api_base</code>. For example, <code>:openai</code> maps to <code>openai_api_base</code>, <code>:ollama</code> maps to <code>ollama_api_base</code>.</li>
 <li><code>request_timeout</code>, <code>max_retries</code>, and <code>retry_interval</code> map directly to RubyLLM settings</li>
 <li><code>template_directory</code> is passed to <code>RubyLLM::Template</code></li>
 </ul>

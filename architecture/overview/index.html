@@ -1858,7 +1858,7 @@
     N --&gt; O[Fire on_method_generated Hook]
     O --&gt; P["Return Array&lt;Symbol&gt;"]</code></pre>
 <h2 id="stage-1-shape">Stage 1: Shape<a class="headerlink" href="#stage-1-shape" title="Permanent link">&para;</a></h2>
-<p>The shape stage rewrites a casual English description into a precise Ruby method specification. It uses ERB templates from the <code>shape/</code> directory.</p>
+<p>The shape stage rewrites a casual language description into a precise Ruby method specification. It uses ERB templates from the <code>shape/</code> directory.</p>
 <p>The LLM receives class context:</p>
 <ul>
 <li><strong>Class name</strong> -- e.g., <code>Calculator</code></li>
@@ -1940,6 +1940,7 @@
         -exec(*) raises SecurityError
         -spawn(*) raises SecurityError
         -fork(*) raises SecurityError
+        -backticks(*) raises SecurityError
         -open(*) raises SecurityError
     }
 

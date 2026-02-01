@@ -1789,8 +1789,8 @@
 <p>The LLM receives introspection context about your class when generating methods:</p>
 <ul>
 <li><strong>Class name</strong> -- So it can reference the correct class</li>
-<li><strong>Instance variables</strong> -- So it can use existing state</li>
-<li><strong>Public methods</strong> -- So it can call or complement existing behavior</li>
+<li><strong>Instance variables</strong> -- Current instance variables on the calling object</li>
+<li><strong>Public methods</strong> -- Methods defined directly on your class (excludes inherited <code>Object</code> methods)</li>
 </ul>
 <p>This means generated methods can work with your class's existing state:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">BankAccount</span>
@@ -1851,6 +1851,10 @@
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Generation failed: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">end</span>
 </span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LLM communication failures (network errors, timeouts, API errors) are rescued internally and surface as <code>GenerationError</code> with message "Code generation failed (LLM returned nil)" or "Prompt shaping failed (LLM returned nil)". If generation consistently fails, verify your LLM provider is running and reachable.</p>
+</div>
 <p>See <a href="../../api/errors/">Errors</a> for the full error hierarchy.</p>
 
 

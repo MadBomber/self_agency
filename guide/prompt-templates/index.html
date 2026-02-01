@@ -998,6 +998,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Custom Templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-customize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Customize?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-adapting-the-generate-prompt-for-a-different-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Adapting the Generate Prompt for a Different Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1742,6 +1781,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Custom Templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-customize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Customize?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-adapting-the-generate-prompt-for-a-different-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Adapting the Generate Prompt for a Different Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1795,7 +1873,7 @@
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    user.txt.erb      # User prompt for the generate stage
 </span></code></pre></div>
 <h2 id="shape-stage-templates">Shape Stage Templates<a class="headerlink" href="#shape-stage-templates" title="Permanent link">&para;</a></h2>
-<p>The <strong>shape</strong> stage rewrites a casual English description into a precise Ruby method specification.</p>
+<p>The <strong>shape</strong> stage rewrites a casual language description into a precise Ruby method specification.</p>
 <p><strong><code>shape/system.txt.erb</code></strong> -- Instructs the LLM to act as a prompt engineer, with rules for rewriting descriptions:</p>
 <ul>
 <li>State the exact method name (snake_case)</li>
@@ -1803,7 +1881,7 @@
 <li>State the return type and value</li>
 <li>Describe the algorithm step by step</li>
 <li>Translate vague terms into concrete Ruby operations</li>
-<li>Output only plain English, no code</li>
+<li>Output only plain language, no code</li>
 </ul>
 <p><strong><code>shape/user.txt.erb</code></strong> -- Provides class context and the user's request:</p>
 <div class="language-erb highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="x">Rewrite the following casual request into a precise Ruby method specification.</span>
@@ -1857,6 +1935,10 @@
 <li>Do not wrap code in markdown fences</li>
 <li>The method must be self-contained</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The template instructs the LLM to return "exactly one" method definition. However, when describing multiple methods in a single <code>_()</code> call, some LLMs return multiple <code>def...end</code> blocks despite this instruction. SelfAgency handles this gracefully -- it splits the output into individual method blocks and installs each one separately.</p>
+</div>
 <p><strong><code>generate/user.txt.erb</code></strong> -- Passes the shaped specification:</p>
 <div class="language-erb highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">shaped_spec</span><span class="w"> </span><span class="cp">%&gt;</span>
 </span></code></pre></div>
@@ -1888,22 +1970,73 @@
 </tbody>
 </table>
 <h2 id="custom-templates">Custom Templates<a class="headerlink" href="#custom-templates" title="Permanent link">&para;</a></h2>
-<p>Override <code>template_directory</code> to use your own templates:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">template_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/path/to/my/prompts&quot;</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1"># ...</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">end</span>
+<h3 id="why-customize">Why Customize?<a class="headerlink" href="#why-customize" title="Permanent link">&para;</a></h3>
+<p>The default prompts are tuned for general-purpose code generation, but different providers and models respond best to different prompt styles. You may want to customize templates when:</p>
+<ul>
+<li><strong>Switching providers or models</strong> -- A prompt that works well with Ollama's Qwen may produce poor results with OpenAI's GPT-4o or Anthropic's Claude. Some models need more explicit instructions; others perform better with fewer constraints. Smaller models may need step-by-step algorithmic guidance that a larger model would find redundant.</li>
+<li><strong>Domain-specific generation</strong> -- If your class operates in a specific domain (financial calculations, data science, text processing), you can add domain rules and conventions directly into the system prompt so every generated method follows them.</li>
+<li><strong>Code style enforcement</strong> -- You may want generated methods to follow your project's conventions: frozen string literals, specific naming patterns, guard clauses, or particular error handling styles.</li>
+<li><strong>Controlling output format</strong> -- Some models wrap output in markdown fences or include chain-of-thought reasoning despite instructions not to. Tailoring the prompt to your model's quirks reduces the sanitization needed.</li>
+</ul>
+<h3 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h3>
+<p>Start by copying the default prompts into your project:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cp<span class="w"> </span>-r<span class="w"> </span><span class="k">$(</span>bundle<span class="w"> </span>show<span class="w"> </span>self_agency<span class="k">)</span>/lib/self_agency/prompts<span class="w"> </span>my_prompts
+</span></code></pre></div>
+<p>Then point SelfAgency at your copy:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">SelfAgency</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">template_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="s2">&quot;my_prompts&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">__dir__</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="c1"># ...</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">end</span>
 </span></code></pre></div>
 <p>Your custom directory must follow the same layout:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>my_prompts/
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  shape/
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    system.txt.erb
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    user.txt.erb
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  generate/
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    system.txt.erb
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    user.txt.erb
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>my_prompts/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  shape/
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    system.txt.erb
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    user.txt.erb
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  generate/
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    system.txt.erb
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    user.txt.erb
 </span></code></pre></div>
-<p>All ERB variables listed above are available in your custom templates. This lets you customize the LLM's behavior -- for example, adding domain-specific instructions or constraining the generated code style.</p>
+<p>All ERB variables listed above are available in your custom templates.</p>
+<h3 id="example-adapting-the-generate-prompt-for-a-different-model">Example: Adapting the Generate Prompt for a Different Model<a class="headerlink" href="#example-adapting-the-generate-prompt-for-a-different-model" title="Permanent link">&para;</a></h3>
+<p>The default <code>generate/system.txt.erb</code> is concise:</p>
+<div class="language-erb highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="x">You are a Ruby code generator. You MUST respond with ONLY a Ruby method</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="x">definition — nothing else. No explanation, no markdown fences, no comments</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="x">outside the method, no extra text.</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="x">Context for the class you are writing a method for:</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="x">- Class name: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">class_name</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="x">- Instance variables: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">ivars</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="x">- Public methods: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="nb">methods</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="x">Rules:</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="x">- Return exactly one `def method_name ... end` block.</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="x">- Do NOT use system, exec, backticks, File, IO, Kernel, require, load, eval, or send.</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="x">- Do NOT wrap the code in markdown fences.</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="x">- The method must be self-contained.</span>
+</span></code></pre></div>
+<p>A smaller or less instruction-following model might ignore the "no markdown fences" rule, or include conversational preamble before the code. You could adapt it with stronger guardrails:</p>
+<div class="language-erb highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="x">TASK: Generate a Ruby method definition.</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="x">CRITICAL FORMAT RULES:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="x">1. Your ENTIRE response must be a single `def ... end` block.</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="x">2. Do NOT output any text before `def` or after `end`.</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="x">3. Do NOT use ``` fences. Do NOT use &lt;think&gt; tags.</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="x">4. Do NOT include comments, explanations, or notes.</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="x">If you output anything other than a method definition, the parse will fail.</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="x">Class: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">class_name</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="x">Instance variables: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">ivars</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="x">Existing methods: </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="nb">methods</span><span class="w"> </span><span class="cp">%&gt;</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="x">FORBIDDEN constructs (will be rejected):</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="x">system, exec, spawn, fork, backticks, File, IO, Kernel, Open3,</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="x">Process, require, load, eval, send, __send__, remove_method, undef_method</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="x">Write ONLY the def ... end block now.</span>
+</span></code></pre></div>
+<p>This version uses imperative language, repeats the format constraint, and explicitly warns about parse failure -- techniques that help smaller models stay on track.</p>
 
 
 

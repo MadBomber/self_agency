@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#selfagency" class="md-skip">
+        <a href="#quick-example" class="md-skip">
           Skip to content
         </a>
       
@@ -1528,8 +1528,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1542,17 +1540,6 @@
     <span class="md-ellipsis">
       
         Quick Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
       
     </span>
   </a>
@@ -1631,23 +1618,28 @@
   
 
 
-<blockquote>
-<p>[!CAUTION]
-This is an experiment. It may not be fit for any specific purpose.</p>
-</blockquote>
-<h1 id="selfagency">SelfAgency<a class="headerlink" href="#selfagency" title="Permanent link">&para;</a></h1>
+<div align="center">
+  <h1>SelfAgency</h1>
+  Describe what you want in plain language, get working methods back.<br/>
+  SelfAgency is a mixin module that gives any Ruby class the ability to<br/>
+  generate and install methods at runtime via an LLM.<br/>
+  <br/>
+  <img src="assets/images/self_agency.gif" alt="SelfAgency Demo" width="100%">
+  <h2>Key Features</h2>
+</div>
+
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="assets/images/self_agency.gif" alt="SelfAgency Demo" width="100%">
-    </td>
-    <td width="50%" valign="top">
-      <h3>Key Features</h3>
       <ul>
         <li><strong>Natural language to Ruby methods</strong> — describe what you want, get working code</li>
         <li><strong>Multiple methods at once</strong> — generate related methods in a single call</li>
         <li><strong>Three scopes</strong> — instance, singleton, and class methods</li>
         <li><strong>Two-stage LLM pipeline</strong> — shape the prompt, then generate code</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <ul>
         <li><strong>Security by default</strong> — static analysis + runtime sandbox</li>
         <li><strong>Source inspection</strong> — view generated code with <code>_source_for</code></li>
         <li><strong>Save to files</strong> — persist as subclasses with <code>_save!</code></li>
@@ -1657,7 +1649,10 @@ This is an experiment. It may not be fit for any specific purpose.</p>
   </tr>
 </table>
 
-<p>Describe what you want in plain English, get working methods back. SelfAgency is a mixin module that gives any Ruby class the ability to generate and install methods at runtime via an LLM.</p>
+<blockquote>
+<p>[!CAUTION]
+This is an experiment. It may not be fit for any specific purpose.  Its micro-prompting.  Instead of asking Claude Code, CodeX or Gemini to create an entire application, you can use SelfAgency to generate individual methods.  So far the experiments are showing good success with methods that perform math stuff on its input.</p>
+</blockquote>
 <h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;self_agency&quot;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
@@ -1678,30 +1673,11 @@ This is an experiment. It may not be fit for any specific purpose.</p>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">calc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="c1">#=&gt; 10</span>
 </span></code></pre></div>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Natural language method generation</strong> -- Describe methods in plain English, get working Ruby code</li>
-<li><strong>Multiple methods at once</strong> -- Generate several related methods in a single call</li>
-<li><strong>Three scopes</strong> -- Instance, singleton, and class methods</li>
-<li><strong>Two-stage LLM pipeline</strong> -- Shape (refine the prompt) then Generate (produce code)</li>
-<li><strong>Security by default</strong> -- Static analysis rejects dangerous patterns; runtime sandbox blocks system calls</li>
-<li><strong>Source inspection</strong> -- View generated source code with <code>_source_for</code></li>
-<li><strong>Persistence</strong> -- Save generated methods as subclass files with <code>_save!</code></li>
-<li><strong>Lifecycle hooks</strong> -- Override <code>on_method_generated</code> to log or persist each method</li>
-<li><strong>Customizable prompts</strong> -- ERB templates for both pipeline stages</li>
-<li><strong>Provider agnostic</strong> -- Uses <a href="https://github.com/crmne/ruby_llm">ruby_llm</a> to support any LLM provider</li>
-</ul>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart LR
-    A["_('description')"] --&gt; B[Shape]
-    B --&gt; C[Generate]
-    C --&gt; D[Sanitize]
-    D --&gt; E[Validate]
-    E --&gt; F[Sandbox Eval]
-    F --&gt; G[Method Installed]</code></pre>
+<p>Your casual description is first "shaped" into a precise Ruby method specification, then passed through a multi-stage pipeline:</p>
 <ol>
-<li><strong>Shape</strong> -- Rewrites your casual English into a precise Ruby method specification</li>
-<li><strong>Generate</strong> -- Produces <code>def...end</code> blocks from the shaped spec</li>
+<li><strong>Shape</strong> -- Rewrites your casual description into a precise Ruby method specification</li>
+<li><strong>Generate</strong> -- Produces <code>def...end</code> block(s) from the shaped spec</li>
 <li><strong>Sanitize</strong> -- Strips markdown fences and <code>&lt;think&gt;</code> blocks</li>
 <li><strong>Validate</strong> -- Checks for empty code, missing <code>def...end</code>, syntax errors, and dangerous patterns</li>
 <li><strong>Sandbox Eval</strong> -- Evaluates code inside an anonymous module that shadows dangerous Kernel methods</li>
