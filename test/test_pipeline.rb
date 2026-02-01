@@ -141,6 +141,113 @@ class TestPipeline < Minitest::Test
   end
 
   # --------------------------------------------------------------------------
+  # Generation-level retry with error feedback
+  # --------------------------------------------------------------------------
+
+  def test_retry_succeeds_after_bad_then_good_code
+    SelfAgency.reset!
+    configure_self_agency!
+    obj = SampleClass.new
+
+    bad_code  = "def self_agency_retry_ok(a, b)\n  a +\nend"
+    good_code = "def self_agency_retry_ok(a, b)\n  a + b\nend"
+    call_count = 0
+
+    obj.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape then "spec"
+      when :generate
+        call_count += 1
+        call_count == 1 ? bad_code : good_code
+      end
+    end
+
+    method_names = obj._("add two numbers")
+    assert_equal [:self_agency_retry_ok], method_names
+    assert_equal 5, obj.self_agency_retry_ok(2, 3)
+    assert_equal 2, call_count
+  ensure
+    SampleClass.undef_method(:self_agency_retry_ok) if SampleClass.method_defined?(:self_agency_retry_ok)
+  end
+
+  def test_retry_raises_after_exhausting_retries
+    SelfAgency.reset!
+    configure_self_agency!
+    obj = SampleClass.new
+
+    bad_code = "def self_agency_retry_fail(a, b)\n  a +\nend"
+
+    obj.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape    then "spec"
+      when :generate then bad_code
+      end
+    end
+
+    assert_raises(SelfAgency::ValidationError) { obj._("add two numbers") }
+  end
+
+  def test_retry_respects_generation_retries_config
+    SelfAgency.reset!
+    SelfAgency.configure do |config|
+      config.provider           = :ollama
+      config.model              = "qwen3-coder:30b"
+      config.api_base           = "http://localhost:11434/v1"
+      config.generation_retries = 3
+    end
+    obj = SampleClass.new
+
+    bad_code  = "def self_agency_retry_cfg(a, b)\n  a +\nend"
+    good_code = "def self_agency_retry_cfg(a, b)\n  a + b\nend"
+    call_count = 0
+
+    obj.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape then "spec"
+      when :generate
+        call_count += 1
+        call_count < 3 ? bad_code : good_code
+      end
+    end
+
+    method_names = obj._("add two numbers")
+    assert_equal [:self_agency_retry_cfg], method_names
+    assert_equal 3, call_count
+  ensure
+    SampleClass.undef_method(:self_agency_retry_cfg) if SampleClass.method_defined?(:self_agency_retry_cfg)
+  end
+
+  def test_retry_passes_error_feedback_to_template
+    SelfAgency.reset!
+    configure_self_agency!
+    obj = SampleClass.new
+
+    bad_code  = "def self_agency_retry_fb(a, b)\n  a +\nend"
+    good_code = "def self_agency_retry_fb(a, b)\n  a + b\nend"
+    captured_vars = nil
+
+    obj.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape then "spec"
+      when :generate
+        if vars[:previous_error]
+          captured_vars = vars
+          good_code
+        else
+          bad_code
+        end
+      end
+    end
+
+    obj._("add two numbers")
+    assert_instance_of String, captured_vars[:previous_error]
+    assert_includes captured_vars[:previous_error], "syntax error"
+    assert_equal bad_code, captured_vars[:previous_code]
+  ensure
+    SampleClass.undef_method(:self_agency_retry_fb) if SampleClass.method_defined?(:self_agency_retry_fb)
+  end
+
+  # --------------------------------------------------------------------------
   # on_method_generated hook
   # --------------------------------------------------------------------------
 

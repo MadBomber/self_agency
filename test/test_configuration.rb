@@ -48,6 +48,7 @@ class TestConfiguration < Minitest::Test
     assert_equal 30, cfg.request_timeout
     assert_equal 1, cfg.max_retries
     assert_equal 0.5, cfg.retry_interval
+    assert_equal 2, cfg.generation_retries
   end
 
   def test_configuration_default_template_directory

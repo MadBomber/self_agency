@@ -87,11 +87,28 @@ module SelfAgency
     shaped = self_agency_shape(description, scope)
     raise GenerationError, "Prompt shaping failed (LLM returned nil)" unless shaped
 
-    raw = self_agency_ask_with_template(:generate, **self_agency_generation_vars.merge(shaped_spec: shaped))
-    raise GenerationError, "Code generation failed (LLM returned nil)" unless raw
+    max_attempts = SelfAgency.configuration.generation_retries
+    last_error   = nil
+    gen_vars     = self_agency_generation_vars.merge(shaped_spec: shaped, previous_error: nil, previous_code: nil)
+    code         = nil
 
-    code = self_agency_sanitize(raw)
-    self_agency_validate!(code)
+    max_attempts.times do
+      raw = self_agency_ask_with_template(:generate, **gen_vars)
+      raise GenerationError, "Code generation failed (LLM returned nil)" unless raw
+
+      code = self_agency_sanitize(raw)
+      begin
+        self_agency_validate!(code)
+        last_error = nil
+        break
+      rescue ValidationError, SecurityError => e
+        last_error = e
+        gen_vars = gen_vars.merge(previous_error: e.message, previous_code: code)
+      end
+    end
+
+    raise last_error if last_error
+
     self_agency_eval(code, scope)
 
     method_blocks = self_agency_split_methods(code)
