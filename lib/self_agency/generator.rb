@@ -4,14 +4,15 @@ module SelfAgency
   private
 
   # Send a prompt to the configured LLM using a named template.
-  # Returns the response content string, or nil on failure.
+  # Returns the response content string, or nil if the LLM returns empty content.
+  # Raises GenerationError wrapping the original exception on communication failure.
   def self_agency_ask_with_template(template_name, **variables)
     cfg  = SelfAgency.configuration
     chat = RubyLLM.chat(model: cfg.model, provider: cfg.provider)
     response = chat.with_template(template_name, variables).complete
     response.content
-  rescue => e
-    nil
+  rescue StandardError => e
+    raise GenerationError, "LLM request failed (#{e.class}: #{e.message})"
   end
 
   # Pass 1: rewrite the user's casual prompt into a precise technical spec.

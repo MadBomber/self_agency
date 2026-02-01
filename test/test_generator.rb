@@ -39,18 +39,40 @@ class TestGenerator < Minitest::Test
   end
 
   # --------------------------------------------------------------------------
-  # self_agency_ask_with_template returns nil on error
+  # self_agency_ask_with_template raises GenerationError on failure
   # --------------------------------------------------------------------------
 
-  def test_ask_with_template_returns_nil_on_error
+  def test_ask_with_template_raises_generation_error_on_failure
     SelfAgency.reset!
     configure_self_agency!
     obj = SampleClass.new
 
-    # RubyLLM.chat will fail because no real LLM is running; the rescue => e
-    # in self_agency_ask_with_template should catch it and return nil.
-    result = obj.send(:self_agency_ask_with_template, :nonexistent_template)
-    assert_nil result
+    assert_raises(SelfAgency::GenerationError) do
+      obj.send(:self_agency_ask_with_template, :nonexistent_template)
+    end
+  end
+
+  def test_ask_with_template_error_includes_original_message
+    SelfAgency.reset!
+    configure_self_agency!
+    obj = SampleClass.new
+
+    error = assert_raises(SelfAgency::GenerationError) do
+      obj.send(:self_agency_ask_with_template, :nonexistent_template)
+    end
+    assert_match(/LLM request failed/, error.message)
+    assert_match(/\(.+: .+\)/, error.message) # includes (ClassName: message)
+  end
+
+  def test_ask_with_template_preserves_cause_chain
+    SelfAgency.reset!
+    configure_self_agency!
+    obj = SampleClass.new
+
+    error = assert_raises(SelfAgency::GenerationError) do
+      obj.send(:self_agency_ask_with_template, :nonexistent_template)
+    end
+    refute_nil error.cause, "expected error.cause to be the original exception"
   end
 
   # --------------------------------------------------------------------------
