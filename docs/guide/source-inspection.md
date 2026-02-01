@@ -64,6 +64,28 @@ If a method doesn't exist or its source is unavailable, `_source_for` returns `n
 helper._source_for(:nonexistent)  #=> nil
 ```
 
+## Version History
+
+When a method is regenerated (e.g., with a refined description), SelfAgency tracks each version. Use `_source_versions_for` at the class level to retrieve the history:
+
+```ruby
+helper._("an instance method named 'square' that accepts n and returns n * n")
+helper._("an instance method named 'square' that accepts n, raises ArgumentError if n < 0, and returns n * n")
+
+versions = MathHelper._source_versions_for(:square)
+versions.size  #=> 2
+
+versions.each do |v|
+  puts "#{v[:at]} — #{v[:description]}"
+  puts v[:code]
+  puts
+end
+```
+
+Each version entry is a Hash with keys `:code`, `:description`, `:instance_id`, and `:at`.
+
+Returns an empty array if no versions exist for the method.
+
 ## How It Works
 
 `_source_for` checks two sources in order:

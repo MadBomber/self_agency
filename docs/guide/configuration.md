@@ -21,6 +21,8 @@ end
 | `max_retries` | `Integer` | `1` | Number of retries on failure |
 | `retry_interval` | `Float` | `0.5` | Seconds between retries |
 | `template_directory` | `String` | `lib/self_agency/prompts` | Path to ERB prompt templates |
+| `generation_retries` | `Integer` | `3` | Max retry attempts when validation or security checks fail |
+| `logger` | `Proc`, `Logger`, or `nil` | `nil` | Logger for pipeline events (see [Logging](#logging) below) |
 
 ## Configuration Is Mandatory
 
@@ -63,6 +65,27 @@ SelfAgency.ensure_configured!
 ```ruby
 SelfAgency.ensure_configured!  # raises or succeeds silently
 ```
+
+## Logging
+
+Set `logger` to observe each stage of the pipeline. It accepts either a callable (receives `stage` and `message`) or a `Logger`-compatible object (uses `.debug`):
+
+```ruby
+# Callable logger
+SelfAgency.configure do |config|
+  config.logger = ->(stage, message) { puts "[#{stage}] #{message}" }
+  # ...
+end
+
+# Standard library Logger
+require "logger"
+SelfAgency.configure do |config|
+  config.logger = Logger.new($stdout)
+  # ...
+end
+```
+
+Logged stages: `:shape`, `:generate`, `:validate`, `:retry`, `:complete`.
 
 ## Example: Custom Timeouts
 

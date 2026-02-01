@@ -1,37 +1,39 @@
-> [!CAUTION]
-> This is an experiment. It may not be fit for any specific purpose.
-
 <div align="center">
   <h1>SelfAgency</h1>
-  <p><strong>LLM-powered runtime method generation for Ruby classes.</strong></p>
+  Describe what you want in plain language, get working methods back.<br/>
+  SelfAgency is a mixin module that gives any Ruby class the ability to<br/>
+  generate and install methods at runtime via an LLM.<br/>
+  <br/>
+  <img src="docs/assets/images/self_agency.gif" alt="SelfAgency Demo" width="100%">
+  <br/><br/>
+  <a href="https://madbomber.github.io/self_agency"><img src="https://img.shields.io/badge/📖_Full_Documentation-madbomber.github.io/self__agency-7C3AED?style=for-the-badge&labelColor=1a1a2e" alt="Full Documentation"></a>
+  <br/><br/>
+  <h2>Key Features</h2>
 </div>
-
-<br/>
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/assets/images/self_agency.gif" alt="SelfAgency Demo" width="100%">
-      <br/>
-      <strong><a href="https://madbomber.github.io/self_agency">Documentation</a></strong>
-    </td>
-    <td width="50%" valign="top">
-      <h3>Key Features</h3>
       <ul>
         <li><strong>Natural language to Ruby methods</strong> — describe what you want, get working code</li>
         <li><strong>Multiple methods at once</strong> — generate related methods in a single call</li>
         <li><strong>Three scopes</strong> — instance, singleton, and class methods</li>
         <li><strong>Two-stage LLM pipeline</strong> — shape the prompt, then generate code</li>
-        <li><strong>Security by default</strong> — static analysis + runtime sandbox</li>
-        <li><strong>Source inspection</strong> — view generated code with <code>_source_for</code></li>
-        <li><strong>Save to files</strong> — persist as subclasses with <code>_save!</code></li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <ul>
+        <li><strong>Security by default</strong> — 26 static patterns + runtime sandbox</li>
+        <li><strong>Automatic retries</strong> — self-corrects on validation failure</li>
+        <li><strong>Source inspection &amp; versioning</strong> — view code and track history</li>
         <li><strong>Provider agnostic</strong> — any LLM via <a href="https://github.com/crmne/ruby_llm">ruby_llm</a></li>
       </ul>
     </td>
   </tr>
 </table>
 
-<br/>
+> [!CAUTION]
+> This is an experiment. It may not be fit for any specific purpose.  Its micro-prompting.  Instead of asking Claude Code, CodeX or Gemini to create an entire application, you can use SelfAgency to generate individual methods.  So far the experiments are showing good success with methods that perform math stuff on its input.
 
 ## Installation
 
@@ -41,13 +43,9 @@ Add to your Gemfile:
 gem "self_agency"
 ```
 
-Then run:
+Then run `bundle install`. See the [Installation guide](https://madbomber.github.io/self_agency/getting-started/installation/) for LLM provider setup and requirements.
 
-```bash
-bundle install
-```
-
-## Usage
+## Quick Start
 
 ```ruby
 require "self_agency"
@@ -63,203 +61,109 @@ class Foo
 end
 
 foo = Foo.new
-```
-
-### Generate a single method
-
-```ruby
-names = foo._("an instance method to add two integers, return the result")
+foo._("an instance method to add two integers, return the result")
 #=> [:add]
 foo.add(1, 1) #=> 2
 ```
+
+See the [Quick Start walkthrough](https://madbomber.github.io/self_agency/getting-started/quick-start/) for a complete step-by-step guide.
+
+## How to Use
+
+SelfAgency is a Bottom-Up experimentation tool. Start in IRB, describe the behavior you need in plain language, test it with real inputs, inspect the generated source, and refine until the logic is right. Once your methods are proven, save them and wire them into your larger architecture.
+
+```
+Describe  →  Generate  →  Test  →  Inspect  →  Refine
+    ↑                                              │
+    └──────────────────────────────────────────────┘
+```
+
+Read [How to Use SelfAgency](https://madbomber.github.io/self_agency/guide/how-to-use/) for a deeper discussion of Top-Down vs. Bottom-Up design and where SelfAgency fits in your workflow.
+
+## Features at a Glance
 
 ### Generate multiple methods at once
 
 ```ruby
 names = foo._("create add, subtract, multiply, and divide methods for two integers")
 #=> [:add, :subtract, :multiply, :divide]
-foo.subtract(5, 3) #=> 2
 ```
 
-`_` always returns an Array of method name Symbols.
+`_()` always returns an Array of Symbol method names. [Full details →](https://madbomber.github.io/self_agency/guide/generating-methods/)
 
 ### Scopes
 
-**Instance method** (default) -- available on all instances:
-
-```ruby
-foo._("a method to double a number")
-```
-
-**Singleton method** -- available on one instance only:
+Generate instance methods (default), singleton methods, or class methods:
 
 ```ruby
 foo._("a method called greet that returns 'hello'", scope: :singleton)
-foo.greet #=> "hello"
-```
-
-**Class method**:
-
-```ruby
 foo._("a class method called ping that returns 'pong'", scope: :class)
-Foo.ping #=> "pong"
 ```
 
-Generated methods override existing methods with the same name.
+[Full details →](https://madbomber.github.io/self_agency/guide/scopes/)
 
-### Viewing generated source
+### Source inspection and version history
 
-`_source_for` returns the source code for any method, with the original description as a comment header for LLM-generated methods:
+View the generated source and track changes across regenerations:
 
 ```ruby
-foo._("add two integers and return the result")
 puts foo._source_for(:add)
-# >> # add two integers and return the result
-# >> def add(a, b)
-# >>   a + b
-# >> end
+versions = Foo._source_versions_for(:add)
 ```
 
-Works at the class level too:
+[Full details →](https://madbomber.github.io/self_agency/guide/source-inspection/)
+
+### Save generated methods to a file
+
+Persist proven methods as a subclass in a Ruby source file:
 
 ```ruby
-puts Foo._source_for(:add)
-```
-
-For methods defined in files, `_source_for` falls back to `method_source` and includes any comments above the method definition:
-
-```ruby
-puts foo._source_for(:file_defined_method)
-# >> # Adds two numbers together.
-# >> def file_defined_method(a, b)
-# >>   a + b
-# >> end
-```
-
-Returns `nil` if the method doesn't exist or its source is unavailable.
-
-### Saving generated methods to a file
-
-`_save!` writes the object's generated methods as a subclass in a Ruby source file:
-
-```ruby
-foo._("an instance method to add two integers")
-foo._("an instance method to subtract two integers")
-
 foo._save!(as: :calculator)
-# Writes calculator.rb:
-#   require_relative "foo"
-#
-#   class Calculator < Foo
-#     def add(a, b)
-#       a + b
-#     end
-#
-#     def subtract(a, b)
-#       a - b
-#     end
-#   end
+# Writes calculator.rb with class Calculator < Foo
 ```
 
-`as:` is required. It accepts a String or Symbol. Snake case is converted to CamelCase for the class name:
+[Full details →](https://madbomber.github.io/self_agency/guide/saving-methods/)
+
+### Lifecycle hooks
+
+Override `on_method_generated` to persist or log each generated method:
 
 ```ruby
-foo._save!(as: :weather_analyst)  # → class WeatherAnalyst < Foo in weather_analyst.rb
-foo._save!(as: "WeatherAnalyst")  # → same result
-```
-
-Override the default file path with `path:`:
-
-```ruby
-foo._save!(as: :calculator, path: "lib/calculator.rb")
-```
-
-This is especially useful when multiple instances of the same class have different generated methods. Each instance saves as a distinct subclass:
-
-```ruby
-collector = Robot.new(name: "Collector", ...)
-analyst   = Robot.new(name: "Analyst", ...)
-
-collector._save!(as: collector.name)  # → collector.rb with class Collector < Robot
-analyst._save!(as: analyst.name)      # → analyst.rb   with class Analyst < Robot
-```
-
-### Lifecycle hook
-
-Override `on_method_generated` to persist or log generated methods. It is called once per method:
-
-```ruby
-class Foo
-  include SelfAgency
-
-  def on_method_generated(method_name, scope, code)
-    File.write("generated/#{method_name}.rb", code)
-  end
+def on_method_generated(method_name, scope, code)
+  File.write("generated/#{method_name}.rb", code)
 end
 ```
 
-## Configuration
+[Full details →](https://madbomber.github.io/self_agency/guide/lifecycle-hooks/)
 
-| Option | Default | Description |
-|---|---|---|
-| `provider` | `:ollama` | RubyLLM provider |
-| `model` | `"qwen3-coder:30b"` | LLM model name |
-| `api_base` | `"http://localhost:11434/v1"` | Provider API endpoint |
-| `request_timeout` | `30` | Timeout in seconds |
-| `max_retries` | `1` | Number of retries |
-| `retry_interval` | `0.5` | Seconds between retries |
-| `template_directory` | `lib/self_agency/prompts` | Path to ERB prompt templates |
-
-### Prompt templates
-
-SelfAgency uses [ruby_llm-template](https://github.com/danielfriis/ruby_llm-template) for prompt management. Templates live in the configured `template_directory`:
-
-```
-prompts/
-  shape/
-    system.txt.erb    # Rewrites casual descriptions into precise specs
-    user.txt.erb      # Provides class context and user request
-  generate/
-    system.txt.erb    # Instructs the LLM to produce Ruby code
-    user.txt.erb      # Passes the shaped spec
-```
-
-Override `template_directory` to customize prompts:
+### Configuration
 
 ```ruby
 SelfAgency.configure do |config|
-  config.template_directory = "/path/to/my/prompts"
-  # ...
+  config.provider           = :ollama
+  config.model              = "qwen3-coder:30b"
+  config.generation_retries = 3
+  config.logger             = Logger.new($stdout)
 end
 ```
 
+[All options →](https://madbomber.github.io/self_agency/guide/configuration/) · [Prompt templates →](https://madbomber.github.io/self_agency/guide/prompt-templates/)
+
 ## Architecture
 
-The gem uses a two-stage LLM pipeline:
+A two-stage LLM pipeline: **Shape** rewrites casual English into a precise spec, then **Generate** produces `def...end` blocks. Code passes through sanitization, validation, an optional retry loop, and sandboxed eval. Thread-safe via per-class mutex.
 
-1. **Shape** -- Rewrites the user's casual English into a precise Ruby method specification
-2. **Generate** -- Produces `def...end` blocks from the shaped spec
-
-Generated code then passes through:
-
-- **Sanitization** -- Strips markdown fences and `<think>` blocks
-- **Validation** -- Checks for empty code, missing `def...end`, syntax errors, and dangerous patterns
-- **Sandboxed eval** -- Code is evaluated inside an anonymous module that shadows dangerous Kernel methods
-
-## Security
-
-Generated code is validated and sandboxed:
-
-- **Static analysis** rejects code containing `system`, `exec`, `File`, `IO`, `Kernel`, `eval`, `require`, and other dangerous patterns
-- **Runtime sandbox** shadows `system`, `exec`, `spawn`, `fork`, backticks, and `open` with methods that raise `SecurityError`
+[Full architecture overview →](https://madbomber.github.io/self_agency/architecture/overview/) · [Security model →](https://madbomber.github.io/self_agency/architecture/security/)
 
 ## Errors
 
 | Exception | Meaning |
 |---|---|
-| `SelfAgency::GenerationError` | LLM returned nil |
+| `SelfAgency::GenerationError` | LLM returned nil or communication failed |
 | `SelfAgency::ValidationError` | Code is empty, malformed, or has syntax errors |
 | `SelfAgency::SecurityError` | Dangerous pattern detected in generated code |
+
+[Full error reference →](https://madbomber.github.io/self_agency/api/errors/)
 
 ## Development
 

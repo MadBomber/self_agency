@@ -15,6 +15,8 @@ Holds all configuration options. Created automatically by `SelfAgency.configure`
 | `max_retries` | `Integer` | `1` | Number of retries on failure |
 | `retry_interval` | `Float` | `0.5` | Seconds between retries |
 | `template_directory` | `String` | `lib/self_agency/prompts` | Path to ERB prompt templates |
+| `generation_retries` | `Integer` | `3` | Max retry attempts when validation or security checks fail |
+| `logger` | `Proc`, `Logger`, or `nil` | `nil` | Logger for pipeline events (callable or Logger-compatible) |
 
 All attributes are read/write via `attr_accessor`.
 
@@ -78,6 +80,6 @@ SelfAgency.ensure_configured!
 
 ### `SelfAgency.included(base)`
 
-Hook called when a class includes `SelfAgency`. Extends the including class with `SelfAgency::ClassMethods`, which provides the class-level `_source_for` method.
+Hook called when a class includes `SelfAgency`. Extends the including class with `SelfAgency::ClassMethods` and initializes a per-class mutex for thread-safe pipeline execution.
 
 This is called automatically by Ruby's `include` mechanism; you do not need to call it directly.

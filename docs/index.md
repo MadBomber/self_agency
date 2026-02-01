@@ -20,9 +20,9 @@
     </td>
     <td width="50%" valign="top">
       <ul>
-        <li><strong>Security by default</strong> — static analysis + runtime sandbox</li>
-        <li><strong>Source inspection</strong> — view generated code with <code>_source_for</code></li>
-        <li><strong>Save to files</strong> — persist as subclasses with <code>_save!</code></li>
+        <li><strong>Security by default</strong> — 26 static patterns + runtime sandbox</li>
+        <li><strong>Automatic retries</strong> — self-corrects on validation failure</li>
+        <li><strong>Source inspection &amp; versioning</strong> — view code and track history</li>
         <li><strong>Provider agnostic</strong> — any LLM via <a href="https://github.com/crmne/ruby_llm">ruby_llm</a></li>
       </ul>
     </td>
@@ -64,7 +64,8 @@ Your casual description is first "shaped" into a precise Ruby method specificati
 2. **Generate** -- Produces `def...end` block(s) from the shaped spec
 3. **Sanitize** -- Strips markdown fences and `<think>` blocks
 4. **Validate** -- Checks for empty code, missing `def...end`, syntax errors, and dangerous patterns
-5. **Sandbox Eval** -- Evaluates code inside an anonymous module that shadows dangerous Kernel methods
+5. **Retry** -- On validation/security failure, feeds the error back to the LLM for self-correction (up to `generation_retries` attempts)
+6. **Sandbox Eval** -- Evaluates code inside a cached sandbox module that shadows dangerous Kernel methods
 
 ## Requirements
 
@@ -73,4 +74,4 @@ Your casual description is first "shaped" into a precise Ruby method specificati
 
 ## Getting Started
 
-Head to the [Installation](getting-started/installation.md) guide to add SelfAgency to your project, then follow the [Quick Start](getting-started/quick-start.md) for a complete walkthrough.
+Head to the [Installation](getting-started/installation.md) guide to add SelfAgency to your project, then follow the [Quick Start](getting-started/quick-start.md) for a complete walkthrough. For a broader perspective on where SelfAgency fits in your development process, see [How to Use SelfAgency](guide/how-to-use.md).

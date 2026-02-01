@@ -93,19 +93,40 @@ fmt._(
 fmt.greet("World")  #=> "Greetings, World! Welcome aboard."
 ```
 
+## Automatic Retries
+
+When validation or security checks fail, SelfAgency automatically retries code generation. On each retry, the previous error message and failed code are fed back to the LLM so it can self-correct.
+
+The number of attempts is controlled by `generation_retries` (default: `3`):
+
+```ruby
+SelfAgency.configure do |config|
+  config.generation_retries = 5  # try up to 5 times
+  # ...
+end
+```
+
+If all attempts fail, the last `ValidationError` or `SecurityError` is raised. The error includes an `attempt` attribute indicating which attempt produced it.
+
+!!! note
+    Only validation and security failures trigger retries. If the LLM returns `nil` (a `GenerationError`), the error is raised immediately with no retry.
+
 ## Error Handling
 
-`_()` can raise three types of errors:
+`_()` can raise three types of errors. Each error class carries additional attributes for programmatic inspection:
 
 ```ruby
 begin
   calc._("a method to do something")
 rescue SelfAgency::GenerationError => e
-  # LLM returned nil
+  e.stage    #=> :shape or :generate
+  e.attempt  #=> Integer (attempt number, if during retry)
 rescue SelfAgency::ValidationError => e
-  # Code is empty, malformed, or has syntax errors
+  e.generated_code  #=> String (the code that failed)
+  e.attempt         #=> Integer (attempt number, if during retry)
 rescue SelfAgency::SecurityError => e
-  # Dangerous pattern detected in generated code
+  e.matched_pattern  #=> String (the pattern that triggered the error)
+  e.generated_code   #=> String (the code that failed)
 end
 ```
 
@@ -120,6 +141,6 @@ end
 ```
 
 !!! note
-    LLM communication failures (network errors, timeouts, API errors) are rescued internally and surface as `GenerationError` with message "Code generation failed (LLM returned nil)" or "Prompt shaping failed (LLM returned nil)". If generation consistently fails, verify your LLM provider is running and reachable.
+    LLM communication failures (network errors, timeouts, API errors) are wrapped and re-raised as `GenerationError` with a message like `"LLM request failed (Faraday::TimeoutError: timeout)"`. The original exception class and message are preserved in the error message. If generation consistently fails, verify your LLM provider is running and reachable.
 
 See [Errors](../api/errors.md) for the full error hierarchy.

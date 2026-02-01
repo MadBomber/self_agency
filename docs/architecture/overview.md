@@ -6,22 +6,26 @@ SelfAgency uses a two-stage LLM pipeline with multi-layer security to generate a
 
 ```mermaid
 flowchart TD
-    A["User calls _('description')"] --> B[ensure_configured!]
-    B --> C[Shape Stage]
-    C --> D{Shaped spec nil?}
-    D -->|Yes| E[Raise GenerationError]
-    D -->|No| F[Generate Stage]
-    F --> G{Raw code nil?}
-    G -->|Yes| E
-    G -->|No| H[Sanitize]
-    H --> I[Validate]
-    I --> J{Valid?}
-    J -->|No| K[Raise ValidationError or SecurityError]
-    J -->|Yes| L[Sandbox Eval]
-    L --> M[Split Methods]
-    M --> N[Store Source]
-    N --> O[Fire on_method_generated Hook]
-    O --> P["Return Array<Symbol>"]
+    A["User calls _('description')"] --> B[Acquire per-class mutex]
+    B --> C[ensure_configured!]
+    C --> D[Shape Stage]
+    D --> E{Shaped spec nil?}
+    E -->|Yes| F[Raise GenerationError]
+    E -->|No| G[Generate Stage]
+    G --> H{Raw code nil?}
+    H -->|Yes| F
+    H -->|No| I[Sanitize]
+    I --> J[Validate]
+    J --> K{Valid?}
+    K -->|No| L{Retries left?}
+    L -->|Yes| M[Feed error + code back to LLM]
+    M --> G
+    L -->|No| N[Raise ValidationError or SecurityError]
+    K -->|Yes| O[Sandbox Eval]
+    O --> P[Split Methods]
+    P --> Q[Store Source + Version History]
+    Q --> R[Fire on_method_generated Hook]
+    R --> S["Return Array<Symbol>"]
 ```
 
 ## Stage 1: Shape
@@ -42,6 +46,8 @@ The shape stage does **not** produce code. It produces a refined natural languag
 The generate stage takes the shaped specification and produces a `def...end` block. It uses templates from the `generate/` directory.
 
 The LLM receives the same class context plus the shaped specification from stage 1.
+
+If validation or security checks fail, the generate stage retries up to `generation_retries` times (default: 3). On each retry, the previous error message and failed code are injected into the generate template via `previous_error` and `previous_code` variables, allowing the LLM to self-correct.
 
 ## Post-Processing
 
@@ -66,15 +72,17 @@ Four checks run in sequence:
 
 ### Sandbox Eval
 
-The validated code is evaluated inside an anonymous module that includes `SelfAgency::Sandbox`. This module shadows dangerous Kernel methods, placing them ahead of Kernel in Ruby's method resolution order (MRO).
+The validated code is evaluated inside a sandboxed module that includes `SelfAgency::Sandbox`. This module shadows dangerous Kernel methods, placing them ahead of Kernel in Ruby's method resolution order (MRO).
 
-The module is then prepended to the appropriate target:
+Sandbox modules are **cached per scope** to prevent ancestor chain accumulation across multiple `_()` calls:
 
-| Scope | Prepend Target |
-|-------|---------------|
-| `:instance` | `self.class` |
-| `:singleton` | `singleton_class` |
-| `:class` | `self.class.singleton_class` |
+| Scope | Prepend Target | Cache Level |
+|-------|---------------|-------------|
+| `:instance` | `self.class` | Per class |
+| `:singleton` | `singleton_class` | Per instance |
+| `:class` | `self.class.singleton_class` | Per class |
+
+On the first `_()` call for a given scope, a new anonymous module is created, prepended, and cached. Subsequent calls reuse the same module, defining new methods into it rather than creating additional anonymous modules.
 
 ## Module Structure
 
@@ -82,6 +90,7 @@ The module is then prepended to the appropriate target:
 classDiagram
     class SelfAgency {
         +_(description, scope) Array~Symbol~
+        +self_agency_generate(description, scope) Array~Symbol~
         +_source_for(method_name) String?
         +_save!(as, path) String
         +on_method_generated(name, scope, code)
@@ -89,6 +98,7 @@ classDiagram
 
     class ClassMethods {
         +_source_for(method_name) String?
+        +_source_versions_for(method_name) Array~Hash~
     }
 
     class Configuration {
@@ -99,6 +109,8 @@ classDiagram
         +max_retries Integer
         +retry_interval Float
         +template_directory String
+        +generation_retries Integer
+        +logger Proc/Logger/nil
     }
 
     class Sandbox {
@@ -136,6 +148,15 @@ classDiagram
     SelfAgency --> Generator : calls LLM
     SelfAgency --> Saver : persists methods
 ```
+
+## Thread Safety
+
+SelfAgency uses two mutexes to ensure thread-safe operation:
+
+- **`CONFIG_MUTEX`** (module-level) -- Serializes `SelfAgency.configure` and `SelfAgency.reset!` calls so that concurrent configuration changes do not interleave.
+- **Per-class mutex** (`@self_agency_mutex`) -- Initialized when a class includes `SelfAgency`. Serializes the entire `_()` pipeline per class so that concurrent method generation calls do not interfere with each other.
+
+The per-class mutex wraps the full pipeline: shape, generate, validate (with retries), eval, source storage, and lifecycle hook. This means only one thread can generate methods for a given class at a time, but different classes can generate concurrently.
 
 ## File Layout
 

@@ -20,7 +20,18 @@ Before code is evaluated, it is checked against `DANGEROUS_PATTERNS`, a compiled
 | `\bload\b` | Loading external code |
 | `\b__send__\b` | Method dispatch bypass |
 | `\beval\b` | Dynamic code evaluation |
-| `\bsend\b(?!\s*\()` | Method dispatch without parentheses (blocks `send :foo` but allows `send(` with parens) |
+| `\bsend\b` | Method dispatch (`send`) |
+| `\bpublic_send\b` | Method dispatch (`public_send`) |
+| `\bmethod\s*\(` | Method object retrieval |
+| `\bconst_get\b` | Constant lookup bypass |
+| `\bclass_eval\b` | Class-level eval |
+| `\bmodule_eval\b` | Module-level eval |
+| `\binstance_eval\b` | Instance-level eval |
+| `\binstance_variable_set\b` | Direct ivar write |
+| `\binstance_variable_get\b` | Direct ivar read |
+| `\bdefine_method\b` | Dynamic method definition |
+| `\bBinding\b` | Binding access |
+| `\bBasicObject\b` | BasicObject escape hatch |
 | `\bremove_method\b` | Method removal |
 | `\bundef_method\b` | Method undefinition |
 

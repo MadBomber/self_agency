@@ -87,6 +87,7 @@ calc.divide(10, 3)    #=> 3.333...
 
 ## Next Steps
 
+- [How to Use SelfAgency](../guide/how-to-use.md) -- Where SelfAgency fits in your design workflow
 - [Scopes](../guide/scopes.md) -- Generate singleton and class methods
 - [Source Inspection](../guide/source-inspection.md) -- View and retrieve generated source
 - [Saving Methods](../guide/saving-methods.md) -- Persist generated methods to files

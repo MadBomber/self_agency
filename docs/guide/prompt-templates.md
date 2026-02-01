@@ -66,10 +66,22 @@ The **generate** stage produces Ruby code from the shaped specification.
 !!! note
     The template instructs the LLM to return "exactly one" method definition. However, when describing multiple methods in a single `_()` call, some LLMs return multiple `def...end` blocks despite this instruction. SelfAgency handles this gracefully -- it splits the output into individual method blocks and installs each one separately.
 
-**`generate/user.txt.erb`** -- Passes the shaped specification:
+**`generate/user.txt.erb`** -- Passes the shaped specification. On retries, includes the previous error and code so the LLM can self-correct:
 
 ```erb
 <%= shaped_spec %>
+<%% if previous_error %>
+
+Your previous attempt produced this code:
+
+<%= previous_code %>
+
+It failed with the following error:
+
+<%= previous_error %>
+
+Please fix the issue and generate corrected code.
+<%% end %>
 ```
 
 ### Available Variables (Generate)
@@ -80,6 +92,11 @@ The **generate** stage produces Ruby code from the shaped specification.
 | `ivars` | Comma-separated list of instance variables |
 | `methods` | Comma-separated list of public instance methods |
 | `shaped_spec` | Output from the shape stage |
+| `previous_error` | Error message from the previous attempt (`nil` on first attempt) |
+| `previous_code` | Generated code from the previous attempt (`nil` on first attempt) |
+
+!!! warning
+    If you customize the generate templates, your `user.txt.erb` must handle the `previous_error` and `previous_code` variables (they are passed on every call). Use a conditional `<%% if previous_error %>` block to include them only during retries.
 
 ## Custom Templates
 
@@ -139,7 +156,8 @@ Context for the class you are writing a method for:
 
 Rules:
 - Return exactly one `def method_name ... end` block.
-- Do NOT use system, exec, backticks, File, IO, Kernel, require, load, eval, or send.
+- Use the EXACT method name, parameter names, and Hash key names from the specification. Do NOT rename or abbreviate any identifier.
+- Do NOT use any of these forbidden patterns: system, exec, spawn, fork, abort, exit, backticks, %x, File., IO., Kernel., Open3., Process., require, load, __send__, eval, send, public_send, method(), const_get, class_eval, module_eval, instance_eval, instance_variable_set, instance_variable_get, define_method, Binding, BasicObject, remove_method, undef_method.
 - Do NOT wrap the code in markdown fences.
 - The method must be self-contained.
 ```

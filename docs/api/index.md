@@ -15,6 +15,7 @@ Complete reference for SelfAgency's public API.
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `_(description, scope:)` | `Array<Symbol>` | Generate and install methods from a description |
+| `self_agency_generate(description, scope:)` | `Array<Symbol>` | Alias for `_()` |
 | `_source_for(method_name)` | `String` or `nil` | Retrieve source code for a method |
 | `_save!(as:, path:)` | `String` | Save generated methods as a subclass file |
 | `on_method_generated(name, scope, code)` | - | Lifecycle hook (override in your class) |
@@ -24,6 +25,7 @@ Complete reference for SelfAgency's public API.
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `_source_for(method_name)` | `String` or `nil` | Retrieve source code at the class level |
+| `_source_versions_for(method_name)` | `Array<Hash>` | Version history for a generated method |
 
 ### Module-Level Methods
 
