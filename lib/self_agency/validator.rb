@@ -17,7 +17,18 @@ module SelfAgency
     \bload\b                                |
     \b__send__\b                            |
     \beval\b                                |
-    \bsend\b(?!\s*\()                       |
+    \bsend\b                                |
+    \bpublic_send\b                         |
+    \bmethod\s*\(                           |
+    \bconst_get\b                           |
+    \bclass_eval\b                          |
+    \bmodule_eval\b                         |
+    \binstance_eval\b                       |
+    \binstance_variable_set\b               |
+    \binstance_variable_get\b               |
+    \bdefine_method\b                       |
+    \bBinding\b                             |
+    \bBasicObject\b                         |
     \bremove_method\b                       |
     \bundef_method\b
   /x

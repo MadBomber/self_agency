@@ -20,7 +20,7 @@ Before code is evaluated, it is checked against `DANGEROUS_PATTERNS`, a compiled
 | `\bload\b` | Loading external code |
 | `\b__send__\b` | Method dispatch bypass |
 | `\beval\b` | Dynamic code evaluation |
-| `\bsend\b(?!\s*\()` | Method dispatch (allows `.send(` for method calls) |
+| `\bsend\b(?!\s*\()` | Method dispatch without parentheses (blocks `send :foo` but allows `send(` with parens) |
 | `\bremove_method\b` | Method removal |
 | `\bundef_method\b` | Method undefinition |
 

@@ -41,7 +41,7 @@ Widget.new._("a method")
 
 `SelfAgency.configure` delegates to `RubyLLM.configure` and `RubyLLM::Template.configure` under the hood:
 
-- `provider` + `api_base` set the appropriate `*_api_base` on RubyLLM
+- `provider` + `api_base` set the provider-specific API base on RubyLLM. The `api_base` value is assigned to the RubyLLM config key `<provider>_api_base`. For example, `:openai` maps to `openai_api_base`, `:ollama` maps to `ollama_api_base`.
 - `request_timeout`, `max_retries`, and `retry_interval` map directly to RubyLLM settings
 - `template_directory` is passed to `RubyLLM::Template`
 

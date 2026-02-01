@@ -44,8 +44,11 @@ Raised when the LLM fails to produce output.
 
 **Raised when:**
 
-- The shape stage returns `nil`
-- The generate stage returns `nil`
+- The shape stage returns `nil` -- message: `"Prompt shaping failed (LLM returned nil)"`
+- The generate stage returns `nil` -- message: `"Code generation failed (LLM returned nil)"`
+
+!!! note
+    LLM communication failures (network errors, timeouts, provider API errors) are rescued internally by the generator. Any exception during the LLM call results in a `nil` return, which then triggers `GenerationError`. If generation consistently fails, verify your LLM provider is running and the configuration (provider, model, api_base) is correct.
 
 ```ruby
 rescue SelfAgency::GenerationError => e

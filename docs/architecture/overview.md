@@ -26,7 +26,7 @@ flowchart TD
 
 ## Stage 1: Shape
 
-The shape stage rewrites a casual English description into a precise Ruby method specification. It uses ERB templates from the `shape/` directory.
+The shape stage rewrites a casual language description into a precise Ruby method specification. It uses ERB templates from the `shape/` directory.
 
 The LLM receives class context:
 
@@ -106,6 +106,7 @@ classDiagram
         -exec(*) raises SecurityError
         -spawn(*) raises SecurityError
         -fork(*) raises SecurityError
+        -backticks(*) raises SecurityError
         -open(*) raises SecurityError
     }
 

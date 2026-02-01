@@ -156,6 +156,83 @@ class TestValidator < Minitest::Test
     end
   end
 
+  def test_validation_rejects_public_send
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  public_send(:system, 'ls')\nend")
+    end
+  end
+
+  def test_validation_rejects_method_call
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  method(:system).call\nend")
+    end
+  end
+
+  def test_validation_rejects_const_get
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  Object.const_get(:File)\nend")
+    end
+  end
+
+  def test_validation_rejects_class_eval
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  self.class.class_eval('puts 1')\nend")
+    end
+  end
+
+  def test_validation_rejects_module_eval
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  mod.module_eval('puts 1')\nend")
+    end
+  end
+
+  def test_validation_rejects_instance_eval
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  instance_eval('puts 1')\nend")
+    end
+  end
+
+  def test_validation_rejects_instance_variable_set
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  instance_variable_set(:@x, 1)\nend")
+    end
+  end
+
+  def test_validation_rejects_instance_variable_get
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  instance_variable_get(:@x)\nend")
+    end
+  end
+
+  def test_validation_rejects_define_method
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  self.class.define_method(:foo) { 1 }\nend")
+    end
+  end
+
+  def test_validation_rejects_binding
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  b = Binding.new\nend")
+    end
+  end
+
+  def test_validation_rejects_basic_object
+    obj = SampleClass.new
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  BasicObject.new.instance_eval { 1 }\nend")
+    end
+  end
+
   # --------------------------------------------------------------------------
   # Validation — accepts good code
   # --------------------------------------------------------------------------
@@ -166,11 +243,12 @@ class TestValidator < Minitest::Test
     obj.send(:self_agency_validate!, clean) # should not raise
   end
 
-  def test_validation_accepts_send_with_parens
+  def test_validation_rejects_send_with_parens
     obj = SampleClass.new
-    # send( with parens is allowed per the negative lookahead in DANGEROUS_PATTERNS
-    code = "def safe\n  [1,2,3].send(:length)\nend"
-    obj.send(:self_agency_validate!, code) # should not raise
+    # send is blocked unconditionally — generated methods should call methods directly
+    assert_raises(SelfAgency::SecurityError) do
+      obj.send(:self_agency_validate!, "def hack\n  [1,2,3].send(:length)\nend")
+    end
   end
 
   def test_validation_accepts_question_mark_method

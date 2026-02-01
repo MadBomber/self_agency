@@ -60,10 +60,11 @@ obj.send(:self_agency_sanitize, raw)
 
 ## Code Coverage
 
-SimpleCov is available for coverage reports:
+SimpleCov runs automatically with every test execution. Coverage reports are generated in the `coverage/` directory after each `rake test` run:
 
 ```bash
-COVERAGE=true rake test
+rake test
+# Coverage report written to coverage/
 ```
 
-Coverage reports are generated in the `coverage/` directory.
+Open `coverage/index.html` in a browser to view the detailed report.

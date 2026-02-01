@@ -43,8 +43,8 @@ method_names.class  #=> Array
 The LLM receives introspection context about your class when generating methods:
 
 - **Class name** -- So it can reference the correct class
-- **Instance variables** -- So it can use existing state
-- **Public methods** -- So it can call or complement existing behavior
+- **Instance variables** -- Current instance variables on the calling object
+- **Public methods** -- Methods defined directly on your class (excludes inherited `Object` methods)
 
 This means generated methods can work with your class's existing state:
 
@@ -118,5 +118,8 @@ rescue SelfAgency::Error => e
   puts "Generation failed: #{e.message}"
 end
 ```
+
+!!! note
+    LLM communication failures (network errors, timeouts, API errors) are rescued internally and surface as `GenerationError` with message "Code generation failed (LLM returned nil)" or "Prompt shaping failed (LLM returned nil)". If generation consistently fails, verify your LLM provider is running and reachable.
 
 See [Errors](../api/errors.md) for the full error hierarchy.

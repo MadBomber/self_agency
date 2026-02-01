@@ -16,7 +16,7 @@ lib/self_agency/prompts/
 
 ## Shape Stage Templates
 
-The **shape** stage rewrites a casual English description into a precise Ruby method specification.
+The **shape** stage rewrites a casual language description into a precise Ruby method specification.
 
 **`shape/system.txt.erb`** -- Instructs the LLM to act as a prompt engineer, with rules for rewriting descriptions:
 
@@ -25,7 +25,7 @@ The **shape** stage rewrites a casual English description into a precise Ruby me
 - State the return type and value
 - Describe the algorithm step by step
 - Translate vague terms into concrete Ruby operations
-- Output only plain English, no code
+- Output only plain language, no code
 
 **`shape/user.txt.erb`** -- Provides class context and the user's request:
 
@@ -63,6 +63,9 @@ The **generate** stage produces Ruby code from the shaped specification.
 - Do not wrap code in markdown fences
 - The method must be self-contained
 
+!!! note
+    The template instructs the LLM to return "exactly one" method definition. However, when describing multiple methods in a single `_()` call, some LLMs return multiple `def...end` blocks despite this instruction. SelfAgency handles this gracefully -- it splits the output into individual method blocks and installs each one separately.
+
 **`generate/user.txt.erb`** -- Passes the shaped specification:
 
 ```erb
@@ -80,11 +83,28 @@ The **generate** stage produces Ruby code from the shaped specification.
 
 ## Custom Templates
 
-Override `template_directory` to use your own templates:
+### Why Customize?
+
+The default prompts are tuned for general-purpose code generation, but different providers and models respond best to different prompt styles. You may want to customize templates when:
+
+- **Switching providers or models** -- A prompt that works well with Ollama's Qwen may produce poor results with OpenAI's GPT-4o or Anthropic's Claude. Some models need more explicit instructions; others perform better with fewer constraints. Smaller models may need step-by-step algorithmic guidance that a larger model would find redundant.
+- **Domain-specific generation** -- If your class operates in a specific domain (financial calculations, data science, text processing), you can add domain rules and conventions directly into the system prompt so every generated method follows them.
+- **Code style enforcement** -- You may want generated methods to follow your project's conventions: frozen string literals, specific naming patterns, guard clauses, or particular error handling styles.
+- **Controlling output format** -- Some models wrap output in markdown fences or include chain-of-thought reasoning despite instructions not to. Tailoring the prompt to your model's quirks reduces the sanitization needed.
+
+### Setup
+
+Start by copying the default prompts into your project:
+
+```bash
+cp -r $(bundle show self_agency)/lib/self_agency/prompts my_prompts
+```
+
+Then point SelfAgency at your copy:
 
 ```ruby
 SelfAgency.configure do |config|
-  config.template_directory = "/path/to/my/prompts"
+  config.template_directory = File.expand_path("my_prompts", __dir__)
   # ...
 end
 ```
@@ -101,4 +121,51 @@ my_prompts/
     user.txt.erb
 ```
 
-All ERB variables listed above are available in your custom templates. This lets you customize the LLM's behavior -- for example, adding domain-specific instructions or constraining the generated code style.
+All ERB variables listed above are available in your custom templates.
+
+### Example: Adapting the Generate Prompt for a Different Model
+
+The default `generate/system.txt.erb` is concise:
+
+```erb
+You are a Ruby code generator. You MUST respond with ONLY a Ruby method
+definition — nothing else. No explanation, no markdown fences, no comments
+outside the method, no extra text.
+
+Context for the class you are writing a method for:
+- Class name: <%= class_name %>
+- Instance variables: <%= ivars %>
+- Public methods: <%= methods %>
+
+Rules:
+- Return exactly one `def method_name ... end` block.
+- Do NOT use system, exec, backticks, File, IO, Kernel, require, load, eval, or send.
+- Do NOT wrap the code in markdown fences.
+- The method must be self-contained.
+```
+
+A smaller or less instruction-following model might ignore the "no markdown fences" rule, or include conversational preamble before the code. You could adapt it with stronger guardrails:
+
+```erb
+TASK: Generate a Ruby method definition.
+
+CRITICAL FORMAT RULES:
+1. Your ENTIRE response must be a single `def ... end` block.
+2. Do NOT output any text before `def` or after `end`.
+3. Do NOT use ``` fences. Do NOT use <think> tags.
+4. Do NOT include comments, explanations, or notes.
+
+If you output anything other than a method definition, the parse will fail.
+
+Class: <%= class_name %>
+Instance variables: <%= ivars %>
+Existing methods: <%= methods %>
+
+FORBIDDEN constructs (will be rejected):
+system, exec, spawn, fork, backticks, File, IO, Kernel, Open3,
+Process, require, load, eval, send, __send__, remove_method, undef_method
+
+Write ONLY the def ... end block now.
+```
+
+This version uses imperative language, repeats the format constraint, and explicitly warns about parse failure -- techniques that help smaller models stay on track.
