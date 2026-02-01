@@ -194,4 +194,77 @@ class TestSourceFor < Minitest::Test
   def test_class_source_for_returns_nil_for_nonexistent_method
     assert_nil SampleClass._source_for(:totally_nonexistent)
   end
+
+  # --------------------------------------------------------------------------
+  # _source_versions_for — version history tracking
+  # --------------------------------------------------------------------------
+
+  def test_source_versions_for_returns_empty_array_for_unknown_method
+    assert_equal [], SampleClass._source_versions_for(:nonexistent)
+  end
+
+  def test_two_instances_same_method_name_tracks_both_versions
+    SelfAgency.reset!
+    configure_self_agency!
+
+    code_v1 = "def self_agency_ver_test\n  1\nend"
+    code_v2 = "def self_agency_ver_test\n  2\nend"
+
+    obj1 = SampleClass.new
+    obj1.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape    then "spec"
+      when :generate then code_v1
+      end
+    end
+    obj1._("version one")
+
+    obj2 = SampleClass.new
+    obj2.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape    then "spec"
+      when :generate then code_v2
+      end
+    end
+    obj2._("version two")
+
+    versions = SampleClass._source_versions_for(:self_agency_ver_test)
+    assert_equal 2, versions.length
+
+    assert_equal code_v1, versions[0][:code]
+    assert_equal "version one", versions[0][:description]
+    assert_equal obj1.object_id, versions[0][:instance_id]
+    assert_instance_of Time, versions[0][:at]
+
+    assert_equal code_v2, versions[1][:code]
+    assert_equal "version two", versions[1][:description]
+    assert_equal obj2.object_id, versions[1][:instance_id]
+    assert_instance_of Time, versions[1][:at]
+
+    # _source_for still returns the most recent
+    assert_equal "# version two\n#{code_v2}", SampleClass._source_for(:self_agency_ver_test)
+  ensure
+    SampleClass.undef_method(:self_agency_ver_test) if SampleClass.method_defined?(:self_agency_ver_test)
+  end
+
+  def test_source_versions_for_accepts_string_argument
+    SelfAgency.reset!
+    configure_self_agency!
+
+    generated_code = "def self_agency_ver_str\n  true\nend"
+    obj = SampleClass.new
+    obj.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape    then "spec"
+      when :generate then generated_code
+      end
+    end
+    obj._("a method")
+
+    versions = SampleClass._source_versions_for("self_agency_ver_str")
+    assert_equal 1, versions.length
+    assert_equal generated_code, versions[0][:code]
+  ensure
+    SampleClass.undef_method(:self_agency_ver_str) if SampleClass.method_defined?(:self_agency_ver_str)
+  end
 end

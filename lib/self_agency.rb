@@ -47,12 +47,22 @@ module SelfAgency
       nil
     end
 
+    # Return the version history for +method_name+, or an empty array.
+    # Each entry is a Hash with keys :code, :description, :instance_id, :at.
+    def _source_versions_for(method_name)
+      self_agency_class_source_versions[method_name.to_sym] || []
+    end
+
     def self_agency_class_sources
       @self_agency_class_sources ||= {}
     end
 
     def self_agency_class_descriptions
       @self_agency_class_descriptions ||= {}
+    end
+
+    def self_agency_class_source_versions
+      @self_agency_class_source_versions ||= {}
     end
 
     private
@@ -117,6 +127,12 @@ module SelfAgency
       self_agency_descriptions[name] = description
       self.class.self_agency_class_sources[name] = block
       self.class.self_agency_class_descriptions[name] = description
+      (self.class.self_agency_class_source_versions[name] ||= []) << {
+        code: block,
+        description: description,
+        instance_id: object_id,
+        at: Time.now
+      }
       on_method_generated(name, scope, block)
       name
     end
