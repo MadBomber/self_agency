@@ -107,6 +107,8 @@ module SelfAgency
     method_names
   end
 
+  alias_method :self_agency_generate, :_
+
   # Return the generated source code for +method_name+, or nil if unavailable.
   # Checks LLM-generated source first, then falls back to method_source.
   # LLM-generated methods include the original description as a comment header.

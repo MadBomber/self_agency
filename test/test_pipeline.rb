@@ -116,6 +116,31 @@ class TestPipeline < Minitest::Test
   end
 
   # --------------------------------------------------------------------------
+  # self_agency_generate alias
+  # --------------------------------------------------------------------------
+
+  def test_self_agency_generate_alias_invokes_pipeline
+    SelfAgency.reset!
+    configure_self_agency!
+    obj = SampleClass.new
+
+    generated_code = "def self_agency_alias_add(a, b)\n  a + b\nend"
+
+    obj.define_singleton_method(:self_agency_ask_with_template) do |name, **vars|
+      case name
+      when :shape    then "A precise spec for adding two numbers"
+      when :generate then generated_code
+      end
+    end
+
+    method_names = obj.self_agency_generate("add two numbers")
+    assert_equal [:self_agency_alias_add], method_names
+    assert_equal 5, obj.self_agency_alias_add(2, 3)
+  ensure
+    SampleClass.undef_method(:self_agency_alias_add) if SampleClass.method_defined?(:self_agency_alias_add)
+  end
+
+  # --------------------------------------------------------------------------
   # on_method_generated hook
   # --------------------------------------------------------------------------
 
