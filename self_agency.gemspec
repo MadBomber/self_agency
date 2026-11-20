@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A mixin that gives any Ruby class the ability to generate and install methods at runtime via an LLM. Describe what you want in plain English and get a working method back."
   spec.homepage = "https://github.com/madbomber/self_agency"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 4.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/madbomber/self_agency"
